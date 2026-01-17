@@ -1,7 +1,7 @@
 // ignore_for_file: overridden_fields
 import 'package:hive/hive.dart';
 import '../../domain/entities/transaction_entity.dart';
-import '../../domain/entities/debt_status.dart';
+import '../../../debts/domain/entities/debt_status.dart';
 
 part 'transaction_model.g.dart';
 

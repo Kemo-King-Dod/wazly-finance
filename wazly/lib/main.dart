@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'injection_container.dart' as di;
-import 'features/wallet/presentation/pages/dashboard_page.dart';
-import 'features/wallet/presentation/pages/analytics_page.dart';
+import 'features/home/presentation/pages/dashboard_page.dart';
+import 'features/analytics/presentation/pages/analytics_page.dart';
 import 'features/accounts/presentation/pages/accounts_page.dart';
+import 'features/debts/presentation/blocs/debt_bloc.dart';
 import 'features/transactions/presentation/pages/transaction_history_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'features/wallet/presentation/blocs/settings/settings_bloc.dart';
-import 'features/wallet/presentation/blocs/settings/settings_event.dart';
-import 'features/wallet/presentation/blocs/settings/settings_state.dart';
+import 'features/settings/presentation/blocs/settings_bloc.dart';
+import 'features/settings/presentation/blocs/settings_event.dart';
+import 'features/settings/presentation/blocs/settings_state.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'features/wallet/presentation/pages/settings_page.dart';
-import 'features/wallet/presentation/pages/security_lock_page.dart';
+import 'features/settings/presentation/pages/settings_page.dart';
+import 'features/settings/presentation/pages/security_lock_page.dart';
 import 'features/transactions/presentation/blocs/transaction_bloc.dart';
 import 'features/accounts/presentation/blocs/account_bloc.dart';
+import 'features/analytics/presentation/blocs/analytics_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,6 +35,8 @@ class WazlyApp extends StatelessWidget {
           create: (context) => di.sl<SettingsBloc>()..add(const LoadSettings()),
         ),
         BlocProvider(create: (context) => di.sl<TransactionBloc>()),
+        BlocProvider(create: (context) => di.sl<AnalyticsBloc>()),
+        BlocProvider(create: (context) => di.sl<DebtBloc>()),
         BlocProvider(create: (context) => di.sl<AccountBloc>()),
       ],
       child: BlocBuilder<SettingsBloc, SettingsState>(

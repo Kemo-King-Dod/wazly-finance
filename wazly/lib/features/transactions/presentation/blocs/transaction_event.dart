@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../../transactions/domain/entities/transaction_entity.dart';
-import '../../domain/entities/time_filter.dart';
 
 /// Base class for all Transaction events
 abstract class TransactionEvent extends Equatable {
@@ -28,14 +27,4 @@ class AddTransactionEvent extends TransactionEvent {
 /// Event to refresh transaction data
 class RefreshTransactionData extends TransactionEvent {
   const RefreshTransactionData();
-}
-
-/// Event to fetch analytics data
-class FetchAnalyticsData extends TransactionEvent {
-  final TimeFilter filter;
-
-  const FetchAnalyticsData(this.filter);
-
-  @override
-  List<Object?> get props => [filter];
 }

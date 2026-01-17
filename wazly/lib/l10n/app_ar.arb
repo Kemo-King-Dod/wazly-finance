@@ -39,6 +39,8 @@
   "addFirstAccount": "إضافة أول حساب",
   "noTransactions": "لا توجد معاملات بعد",
   "noAccounts": "لا توجد حسابات بعد",
+  "noAccountsMatchFilter": "لا توجد حسابات تطابق هذا الفلتر",
+  "tryDifferentFilter": "جرب فلتر أو مصطلح بحث مختلف",
   "noData": "لا توجد بيانات متاحة",
   "preparingAnalytics": "جاري تحضير التحليلات...",
   "initializingAccounts": "جاري تهيئة الحسابات...",

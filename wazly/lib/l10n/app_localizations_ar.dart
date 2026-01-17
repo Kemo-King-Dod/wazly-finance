@@ -129,6 +129,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noAccounts => 'لا توجد حسابات بعد';
 
   @override
+  String get noAccountsMatchFilter => 'لا توجد حسابات تطابق هذا الفلتر';
+
+  @override
+  String get tryDifferentFilter => 'جرب فلتر أو مصطلح بحث مختلف';
+
+  @override
   String get noData => 'لا توجد بيانات متاحة';
 
   @override

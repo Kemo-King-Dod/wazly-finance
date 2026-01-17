@@ -1,7 +1,5 @@
 import 'package:equatable/equatable.dart';
 import '../../../transactions/domain/entities/transaction_entity.dart';
-import '../../domain/entities/category_expense.dart';
-import '../../domain/entities/time_filter.dart';
 
 /// Base class for all Transaction states
 abstract class TransactionState extends Equatable {
@@ -84,43 +82,4 @@ class TransactionAddingTransaction extends TransactionState {
 /// State when a transaction is successfully added
 class TransactionAdded extends TransactionState {
   const TransactionAdded();
-}
-
-/// State when analytics data is being loaded
-class TransactionAnalyticsLoading extends TransactionState {
-  const TransactionAnalyticsLoading();
-}
-
-/// State when analytics data is successfully loaded
-class TransactionAnalyticsLoaded extends TransactionState {
-  final List<CategoryExpense> categoryExpenses;
-  final double totalIncome;
-  final double totalExpenses;
-  final TimeFilter currentFilter;
-  final double totalBalance;
-  final double debtAssets;
-  final double debtLiabilities;
-
-  const TransactionAnalyticsLoaded({
-    required this.categoryExpenses,
-    required this.totalIncome,
-    required this.totalExpenses,
-    required this.currentFilter,
-    this.totalBalance = 0,
-    this.debtAssets = 0,
-    this.debtLiabilities = 0,
-  });
-
-  double get netWorth => totalBalance + debtAssets - debtLiabilities;
-
-  @override
-  List<Object?> get props => [
-    categoryExpenses,
-    totalIncome,
-    totalExpenses,
-    currentFilter,
-    totalBalance,
-    debtAssets,
-    debtLiabilities,
-  ];
 }

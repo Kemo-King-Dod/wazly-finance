@@ -338,6 +338,18 @@ abstract class AppLocalizations {
   /// **'No accounts yet'**
   String get noAccounts;
 
+  /// No description provided for @noAccountsMatchFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'No accounts match this filter'**
+  String get noAccountsMatchFilter;
+
+  /// No description provided for @tryDifferentFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Try a different filter or search term'**
+  String get tryDifferentFilter;
+
   /// No description provided for @noData.
   ///
   /// In en, this message translates to:

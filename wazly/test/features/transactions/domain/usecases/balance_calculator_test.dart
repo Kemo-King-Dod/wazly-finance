@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wazly/features/transactions/domain/entities/transaction_entity.dart';
-import 'package:wazly/features/transactions/domain/entities/debt_status.dart';
+import 'package:wazly/features/debts/domain/entities/debt_status.dart';
 import 'package:wazly/features/transactions/domain/usecases/balance_calculator.dart';
 
 void main() {

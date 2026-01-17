@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'debt_status.dart';
+import '../../../debts/domain/entities/debt_status.dart';
 
 class TransactionEntity extends Equatable {
   final String id;

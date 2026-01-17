@@ -9,20 +9,20 @@ import 'features/transactions/data/repositories/transaction_repository_impl.dart
 import 'features/accounts/domain/repositories/account_repository.dart';
 import 'features/accounts/data/repositories/account_repository_impl.dart';
 import 'features/transactions/domain/repositories/transaction_repository.dart';
-import 'features/wallet/domain/repositories/wallet_repository.dart';
-import 'features/wallet/data/repositories/wallet_repository_impl.dart';
 import 'features/transactions/domain/usecases/balance_calculator.dart';
 import 'features/transactions/domain/usecases/get_transactions_usecase.dart';
 import 'features/transactions/domain/usecases/add_transaction_usecase.dart';
-import 'features/transactions/domain/usecases/get_category_wise_expenses_usecase.dart';
+import 'features/analytics/domain/usecases/get_category_wise_expenses_usecase.dart';
 import 'features/accounts/domain/usecases/get_accounts_usecase.dart';
 import 'features/accounts/domain/usecases/add_account_usecase.dart';
 import 'features/accounts/domain/usecases/get_account_balance_usecase.dart';
 import 'features/accounts/domain/usecases/delete_account_usecase.dart';
-import 'features/wallet/domain/usecases/calculate_net_worth_usecase.dart';
+import 'features/accounts/domain/usecases/calculate_net_worth_usecase.dart';
 import 'features/accounts/presentation/blocs/account_bloc.dart';
 import 'features/transactions/presentation/blocs/transaction_bloc.dart';
-import 'features/wallet/presentation/blocs/settings/settings_bloc.dart';
+import 'features/debts/presentation/blocs/debt_bloc.dart';
+import 'features/analytics/presentation/blocs/analytics_bloc.dart';
+import 'features/settings/presentation/blocs/settings_bloc.dart';
 import 'core/services/backup_service.dart';
 import 'core/services/security_service.dart';
 import 'core/services/notification_service.dart';
@@ -62,7 +62,6 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton<AccountRepository>(
     () => AccountRepositoryImpl(localDataSource: sl()),
   );
-  sl.registerLazySingleton<WalletRepository>(() => WalletRepositoryImpl());
 
   // Use Cases
   sl.registerLazySingleton(() => BalanceCalculator());
@@ -93,10 +92,16 @@ Future<void> initializeDependencies() async {
       getTransactionsUseCase: sl(),
       addTransactionUseCase: sl(),
       balanceCalculator: sl(),
+      calculateNetWorthUseCase: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => AnalyticsBloc(
       getCategoryWiseExpensesUseCase: sl(),
       calculateNetWorthUseCase: sl(),
     ),
   );
+  sl.registerFactory(() => DebtBloc(addTransactionUseCase: sl()));
   sl.registerFactory(
     () => AccountBloc(
       getAccountsUseCase: sl(),

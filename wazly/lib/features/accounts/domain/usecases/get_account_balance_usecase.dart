@@ -94,11 +94,11 @@ class GetAccountBalanceUseCase
             }
           } else {
             if (transaction.isIncome) {
-              // Money in + Debt = Liability (You owe them)
-              debtLiabilities += transaction.amount;
-            } else {
-              // Money out + Debt = Asset (They owe you)
+              // Money in + Debt = Asset (They owe you - they borrowed from you)
               debtAssets += transaction.amount;
+            } else {
+              // Money out + Debt = Liability (You owe them - you borrowed from them)
+              debtLiabilities += transaction.amount;
             }
           }
         }

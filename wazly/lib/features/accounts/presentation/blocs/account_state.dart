@@ -27,7 +27,8 @@ class AccountAddingAccount extends AccountState {
 }
 
 class AccountAccountsLoaded extends AccountState {
-  final List<AccountEntity> accounts;
+  final List<AccountEntity> accounts; // Filtered/sorted accounts
+  final List<AccountEntity> allAccounts; // All accounts (unfiltered)
   final double totalBalance;
   final double debtAssets;
   final double debtLiabilities;
@@ -37,6 +38,7 @@ class AccountAccountsLoaded extends AccountState {
 
   const AccountAccountsLoaded({
     required this.accounts,
+    required this.allAccounts,
     required this.totalBalance,
     required this.debtAssets,
     required this.debtLiabilities,
@@ -48,6 +50,7 @@ class AccountAccountsLoaded extends AccountState {
   @override
   List<Object?> get props => [
     accounts,
+    allAccounts,
     totalBalance,
     debtAssets,
     debtLiabilities,

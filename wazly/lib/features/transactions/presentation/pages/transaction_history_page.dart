@@ -5,10 +5,10 @@ import '../../../../core/theme/app_theme.dart';
 import '../blocs/transaction_bloc.dart';
 import '../blocs/transaction_event.dart';
 import '../blocs/transaction_state.dart';
-import '../../../wallet/presentation/widgets/wazly_drawer_premium.dart';
-import '../../../wallet/presentation/widgets/wazly_navigation_rail.dart';
-import '../../../wallet/presentation/blocs/settings/settings_bloc.dart';
-import '../../../wallet/presentation/blocs/settings/settings_state.dart';
+import '../../../shared/presentation/widgets/wazly_drawer_premium.dart';
+import '../../../shared/presentation/widgets/wazly_navigation_rail.dart';
+import '../../../settings/presentation/blocs/settings_bloc.dart';
+import '../../../settings/presentation/blocs/settings_state.dart';
 
 /// Transaction History page showing all transactions
 class TransactionHistoryPage extends StatefulWidget {

@@ -40,6 +40,8 @@
   "addFirstAccount": "Add First Account",
   "noTransactions": "No transactions yet",
   "noAccounts": "No accounts yet",
+  "noAccountsMatchFilter": "No accounts match this filter",
+  "tryDifferentFilter": "Try a different filter or search term",
   "noData": "No data available",
   "preparingAnalytics": "Preparing Analytics...",
   "initializingAccounts": "Initializing Accounts...",

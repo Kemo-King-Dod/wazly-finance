@@ -7,7 +7,7 @@ import '../../domain/usecases/get_accounts_usecase.dart';
 import '../../domain/usecases/add_account_usecase.dart';
 import '../../domain/usecases/delete_account_usecase.dart';
 import '../../domain/usecases/get_account_balance_usecase.dart';
-import '../../../wallet/domain/usecases/calculate_net_worth_usecase.dart';
+import '../../domain/usecases/calculate_net_worth_usecase.dart';
 import 'account_event.dart';
 import 'account_state.dart';
 
@@ -47,6 +47,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
         emit(
           AccountAccountsLoaded(
             accounts: accounts,
+            allAccounts: accounts, // Same as accounts when no filter applied
             totalBalance: netWorth.vaultBalance,
             debtAssets: netWorth.debtAssets,
             debtLiabilities: netWorth.debtLiabilities,
@@ -173,6 +174,7 @@ class AccountBloc extends Bloc<AccountEvent, AccountState> {
             (netWorth) => emit(
               AccountAccountsLoaded(
                 accounts: filteredAccounts,
+                allAccounts: accounts, // Keep all accounts for reference
                 totalBalance: netWorth.vaultBalance,
                 debtAssets: netWorth.debtAssets,
                 debtLiabilities: netWorth.debtLiabilities,

@@ -10,13 +10,15 @@ import '../blocs/account_state.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/account_filter.dart';
 import '../../domain/usecases/get_account_balance_usecase.dart';
-import '../../../wallet/presentation/widgets/wazly_drawer_premium.dart';
+import '../../../shared/presentation/widgets/wazly_drawer_premium.dart';
 import '../widgets/debt_statistics_card.dart';
 import '../../domain/entities/account_sort.dart';
 import 'package:intl/intl.dart';
-import '../../../wallet/presentation/widgets/wazly_navigation_rail.dart';
-import '../../../wallet/presentation/blocs/settings/settings_bloc.dart';
-import '../../../wallet/presentation/blocs/settings/settings_state.dart';
+import '../../../shared/presentation/widgets/wazly_navigation_rail.dart';
+import '../../../settings/presentation/blocs/settings_bloc.dart';
+import '../../../settings/presentation/blocs/settings_state.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 /// Accounts & Debts page showing all people/contacts
 class AccountsPage extends StatefulWidget {
@@ -107,14 +109,19 @@ class _AccountsPageState extends State<AccountsPage> {
                     }
 
                     if (state is AccountAccountsLoaded) {
-                      if (state.accounts.isEmpty) {
+                      // Only show empty state if there are NO accounts at all
+                      if (state.allAccounts.isEmpty) {
                         return _buildEmptyState(l10n, context);
                       }
+                      // Show accounts list with statistics (even if filtered list is empty)
                       return _buildAccountsList(
                         state.accounts,
                         l10n,
                         debtAssets: state.debtAssets,
                         debtLiabilities: state.debtLiabilities,
+                        hasNoFilterResults:
+                            state.accounts.isEmpty &&
+                            state.allAccounts.isNotEmpty,
                       );
                     }
 
@@ -211,6 +218,7 @@ class _AccountsPageState extends State<AccountsPage> {
     AppLocalizations l10n, {
     required double debtAssets,
     required double debtLiabilities,
+    bool hasNoFilterResults = false,
   }) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -388,6 +396,41 @@ class _AccountsPageState extends State<AccountsPage> {
                 ),
               ),
             ],
+          );
+        }
+
+        // Show message if no accounts match the filter
+        if (hasNoFilterResults && index == 1) {
+          return Padding(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.filter_list_off_rounded,
+                    size: 64,
+                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noAccountsMatchFilter,
+                    style: const TextStyle(
+                      color: AppTheme.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    l10n.tryDifferentFilter,
+                    style: TextStyle(
+                      color: AppTheme.textSecondary,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           );
         }
 
@@ -830,12 +873,41 @@ class _AccountsPageState extends State<AccountsPage> {
                     (val == null || val.isEmpty) ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'Phone (Optional)',
+              Row(
+                children: [
+                  Expanded(
+                    child: TextFormField(
+                      controller: phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Phone (Optional)',
+                      ),
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final contact = await _pickContact();
+                    if (contact != null) {
+                      nameController.text = contact['name'] ?? '';
+                      phoneController.text = contact['phone'] ?? '';
+                    }
+                  },
+                  icon: const Icon(Icons.contacts_rounded),
+                  label: const Text('Pick from Contacts'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(
+                      color: AppTheme.incomeColor.withValues(alpha: 0.5),
+                      width: 1.5,
+                    ),
+                    foregroundColor: AppTheme.incomeColor,
+                  ),
                 ),
-                keyboardType: TextInputType.phone,
               ),
             ],
           ),
@@ -865,5 +937,41 @@ class _AccountsPageState extends State<AccountsPage> {
         ],
       ),
     );
+  }
+
+  Future<Map<String, String>?> _pickContact() async {
+    try {
+      // Request permission
+      final permissionStatus = await Permission.contacts.request();
+
+      if (!permissionStatus.isGranted) {
+        return null;
+      }
+
+      // Pick a contact
+      final contact = await FlutterContacts.openExternalPick();
+
+      if (contact == null) {
+        return null;
+      }
+
+      // Fetch full contact details including phone numbers
+      final fullContact = await FlutterContacts.getContact(contact.id);
+
+      if (fullContact == null) {
+        return null;
+      }
+
+      // Extract name and phone
+      final name = fullContact.displayName;
+      final phone = fullContact.phones.isNotEmpty
+          ? fullContact.phones.first.number
+          : '';
+
+      return {'name': name, 'phone': phone};
+    } catch (e) {
+      // Handle any errors silently
+      return null;
+    }
   }
 }

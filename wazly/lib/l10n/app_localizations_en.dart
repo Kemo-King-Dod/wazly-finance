@@ -129,6 +129,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noAccounts => 'No accounts yet';
 
   @override
+  String get noAccountsMatchFilter => 'No accounts match this filter';
+
+  @override
+  String get tryDifferentFilter => 'Try a different filter or search term';
+
+  @override
   String get noData => 'No data available';
 
   @override
