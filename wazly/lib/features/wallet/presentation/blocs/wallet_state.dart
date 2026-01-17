@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/account_sort.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/category_expense.dart';
@@ -135,26 +136,34 @@ class WalletAccountsLoading extends WalletState {
 /// State when accounts are successfully loaded
 class WalletAccountsLoaded extends WalletState {
   final List<AccountEntity> accounts;
+  final double totalBalance;
   final double debtAssets;
   final double debtLiabilities;
   final String searchQuery;
   final AccountFilter filter;
+  final AccountSort currentSort;
 
   const WalletAccountsLoaded({
     required this.accounts,
+    this.totalBalance = 0,
     this.debtAssets = 0,
     this.debtLiabilities = 0,
     this.searchQuery = '',
     this.filter = AccountFilter.all,
+    this.currentSort = AccountSort.name,
   });
+
+  double get netWorth => totalBalance + debtAssets - debtLiabilities;
 
   @override
   List<Object?> get props => [
     accounts,
+    totalBalance,
     debtAssets,
     debtLiabilities,
     searchQuery,
     filter,
+    currentSort,
   ];
 }
 

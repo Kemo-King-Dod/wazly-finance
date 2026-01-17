@@ -12,6 +12,11 @@ import '../../domain/entities/account_filter.dart';
 import '../../domain/usecases/get_account_balance_usecase.dart';
 import '../widgets/wazly_drawer_premium.dart';
 import '../widgets/debt_statistics_card.dart';
+import '../../domain/entities/account_sort.dart';
+import 'package:intl/intl.dart';
+import '../widgets/wazly_navigation_rail.dart';
+import '../blocs/settings/settings_bloc.dart';
+import '../blocs/settings/settings_state.dart';
 
 /// Accounts & Debts page showing all people/contacts
 class AccountsPage extends StatefulWidget {
@@ -77,86 +82,111 @@ class _AccountsPageState extends State<AccountsPage> {
           label: Text(l10n.addFirstAccount),
         ),
       ),
-      body: BlocConsumer<WalletBloc, WalletState>(
-        buildWhen: (previous, current) =>
-            current is WalletAccountsLoading ||
-            current is WalletAccountsLoaded ||
-            current is WalletError,
-        listener: (context, state) {
-          if (state is WalletAccountAdded) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.accountAdded),
-                backgroundColor: AppTheme.incomeColor,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          } else if (state is WalletError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.debtColor,
-              ),
-            );
-          } else if (state is WalletLoaded || state is WalletTransactionAdded) {
-            // Re-fetch accounts when a transaction is added to refresh balances
-            context.read<WalletBloc>().add(const FetchAccounts());
-          }
-        },
-        builder: (context, state) {
-          if (state is WalletAccountsLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppTheme.incomeColor),
-            );
-          }
-
-          if (state is WalletAccountsLoaded) {
-            if (state.accounts.isEmpty) {
-              return _buildEmptyState(l10n, context);
-            }
-            return _buildAccountsList(
-              state.accounts,
-              l10n,
-              debtAssets: state.debtAssets,
-              debtLiabilities: state.debtLiabilities,
-            );
-          }
-
-          if (state is WalletError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: AppTheme.debtColor,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () =>
-                        context.read<WalletBloc>().add(const FetchAccounts()),
-                    child: Text(l10n.retry),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(color: AppTheme.incomeColor),
-                const SizedBox(height: 16),
-                Text(
-                  l10n.initializingAccounts,
-                  style: TextStyle(color: AppTheme.textSecondary),
+      body: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, settingsState) {
+          return Row(
+            children: [
+              if (settingsState.isNavigationRailEnabled)
+                WazlyNavigationRail(
+                  currentRoute: '/accounts',
+                  onNavigate: (route) {
+                    if (route != '/accounts') {
+                      Navigator.pushReplacementNamed(context, route);
+                    }
+                  },
                 ),
-              ],
-            ),
+              Expanded(
+                child: BlocConsumer<WalletBloc, WalletState>(
+                  buildWhen: (previous, current) =>
+                      current is WalletAccountsLoading ||
+                      current is WalletAccountsLoaded ||
+                      current is WalletError,
+                  listener: (context, state) {
+                    if (state is WalletAccountAdded) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(l10n.accountAdded),
+                          backgroundColor: AppTheme.incomeColor,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    } else if (state is WalletError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: AppTheme.debtColor,
+                        ),
+                      );
+                    } else if (state is WalletLoaded ||
+                        state is WalletTransactionAdded) {
+                      // Re-fetch accounts when a transaction is added to refresh balances
+                      context.read<WalletBloc>().add(const FetchAccounts());
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is WalletAccountsLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.incomeColor,
+                        ),
+                      );
+                    }
+
+                    if (state is WalletAccountsLoaded) {
+                      if (state.accounts.isEmpty) {
+                        return _buildEmptyState(l10n, context);
+                      }
+                      return _buildAccountsList(
+                        state.accounts,
+                        l10n,
+                        debtAssets: state.debtAssets,
+                        debtLiabilities: state.debtLiabilities,
+                      );
+                    }
+
+                    if (state is WalletError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              size: 48,
+                              color: AppTheme.debtColor,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(state.message),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: () => context.read<WalletBloc>().add(
+                                const FetchAccounts(),
+                              ),
+                              child: Text(l10n.retry),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: AppTheme.incomeColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            l10n.initializingAccounts,
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -330,9 +360,41 @@ class _AccountsPageState extends State<AccountsPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      '${accounts.length} ${l10n.accounts.toLowerCase()}',
-                      style: TextStyle(color: AppTheme.textSecondary),
+                    PopupMenuButton<AccountSort>(
+                      icon: const Icon(
+                        Icons.sort_rounded,
+                        color: AppTheme.incomeColor,
+                      ),
+                      onSelected: (sort) {
+                        final currentState = context.read<WalletBloc>().state;
+                        if (currentState is WalletAccountsLoaded) {
+                          context.read<WalletBloc>().add(
+                            SearchAccounts(
+                              query: currentState.searchQuery,
+                              filter: currentState.filter,
+                              sortType: sort,
+                            ),
+                          );
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: AccountSort.name,
+                          child: Text(l10n.sortByName),
+                        ),
+                        PopupMenuItem(
+                          value: AccountSort.balance,
+                          child: Text(l10n.sortByBalance),
+                        ),
+                        PopupMenuItem(
+                          value: AccountSort.recent,
+                          child: Text(l10n.sortByRecent),
+                        ),
+                        PopupMenuItem(
+                          value: AccountSort.dueDate,
+                          child: Text(l10n.sortByDueDate),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -354,6 +416,7 @@ class _AccountsPageState extends State<AccountsPage> {
                 l10n,
                 debtAssets: balance?.debtAssets ?? 0,
                 debtLiabilities: balance?.debtLiabilities ?? 0,
+                nextDueDate: balance?.nextDueDate,
               ),
             );
           },
@@ -378,9 +441,12 @@ class _AccountsPageState extends State<AccountsPage> {
     AppLocalizations l10n, {
     required double debtAssets,
     required double debtLiabilities,
+    DateTime? nextDueDate,
   }) {
     final netBalance = debtAssets - debtLiabilities;
     final hasDebt = debtAssets > 0 || debtLiabilities > 0;
+    final isOverdue =
+        nextDueDate != null && nextDueDate.isBefore(DateTime.now());
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
@@ -533,6 +599,66 @@ class _AccountsPageState extends State<AccountsPage> {
                     ],
                   ),
                 ),
+                if (nextDueDate != null && !isOverdue) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.event_note_rounded,
+                        size: 14,
+                        color: AppTheme.incomeColor.withValues(alpha: 0.7),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${l10n.dueDate}: ${DateFormat('yyyy-MM-dd').format(nextDueDate)}',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                if (isOverdue) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.debtColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          size: 14,
+                          color: AppTheme.debtColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          l10n.overdue,
+                          style: const TextStyle(
+                            color: AppTheme.debtColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          DateFormat('yyyy-MM-dd').format(nextDueDate),
+                          style: TextStyle(
+                            color: AppTheme.debtColor.withValues(alpha: 0.8),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

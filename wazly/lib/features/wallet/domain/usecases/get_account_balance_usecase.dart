@@ -18,16 +18,25 @@ class AccountBalanceParams extends Equatable {
 class AccountBalance extends Equatable {
   final double debtAssets; // Money owed TO you by this account
   final double debtLiabilities; // Money you OWE to this account
+  final DateTime? lastActivity; // Most recent transaction date
+  final DateTime? nextDueDate; // Closest upcoming due date
 
   const AccountBalance({
     required this.debtAssets,
     required this.debtLiabilities,
+    this.lastActivity,
+    this.nextDueDate,
   });
 
   double get netBalance => debtAssets - debtLiabilities;
 
   @override
-  List<Object?> get props => [debtAssets, debtLiabilities];
+  List<Object?> get props => [
+    debtAssets,
+    debtLiabilities,
+    lastActivity,
+    nextDueDate,
+  ];
 }
 
 /// Use case for calculating account balance from linked transactions
@@ -55,21 +64,51 @@ class GetAccountBalanceUseCase
 
         double debtAssets = 0;
         double debtLiabilities = 0;
+        DateTime? lastActivity;
+        DateTime? nextDueDate;
+        final now = DateTime.now();
 
         for (final transaction in linkedTransactions) {
-          if (transaction.isIncome) {
-            // Money in + Debt = Liability (You owe them)
-            debtLiabilities += transaction.amount;
+          // Track last activity
+          if (lastActivity == null || transaction.date.isAfter(lastActivity)) {
+            lastActivity = transaction.date;
+          }
+
+          // Track next due date (if not settled and in future)
+          if (!transaction.isSettled && transaction.dueDate != null) {
+            if (transaction.dueDate!.isAfter(now)) {
+              if (nextDueDate == null ||
+                  transaction.dueDate!.isBefore(nextDueDate)) {
+                nextDueDate = transaction.dueDate;
+              }
+            }
+          }
+
+          if (transaction.isSettled) {
+            if (transaction.isIncome) {
+              // Money in + Settled = Reducing an asset (they paid you back)
+              debtAssets -= transaction.amount;
+            } else {
+              // Money out + Settled = Reducing a liability (you paid them back)
+              debtLiabilities -= transaction.amount;
+            }
           } else {
-            // Money out + Debt = Asset (They owe you)
-            debtAssets += transaction.amount;
+            if (transaction.isIncome) {
+              // Money in + Debt = Liability (You owe them)
+              debtLiabilities += transaction.amount;
+            } else {
+              // Money out + Debt = Asset (They owe you)
+              debtAssets += transaction.amount;
+            }
           }
         }
 
         return Right(
           AccountBalance(
-            debtAssets: debtAssets,
-            debtLiabilities: debtLiabilities,
+            debtAssets: debtAssets < 0 ? 0 : debtAssets,
+            debtLiabilities: debtLiabilities < 0 ? 0 : debtLiabilities,
+            lastActivity: lastActivity,
+            nextDueDate: nextDueDate,
           ),
         );
       });

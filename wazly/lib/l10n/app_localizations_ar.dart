@@ -57,6 +57,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get language => 'اللغة';
 
   @override
+  String get appearance => 'المظهر';
+
+  @override
   String get english => 'الإنجليزية';
 
   @override
@@ -237,6 +240,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sortByDueDate => 'حسب موعد السداد';
 
   @override
+  String get sortByBalance => 'حسب الرصيد';
+
+  @override
+  String get sortByRecent => 'حسب النشاط الأخير';
+
+  @override
   String get search => 'بحث';
 
   @override
@@ -275,4 +284,71 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get delete => 'حذف';
+
+  @override
+  String get dataManagement => 'إدارة البيانات';
+
+  @override
+  String get backupData => 'نسخ احتياطي';
+
+  @override
+  String get restoreData => 'استرداد البيانات';
+
+  @override
+  String get systemReset => 'تهيئة النظام';
+
+  @override
+  String get security => 'الأمان';
+
+  @override
+  String get appLock => 'قفل التطبيق';
+
+  @override
+  String get biometric => 'البصمة';
+
+  @override
+  String get password => 'كلمة المرور';
+
+  @override
+  String get formatConfirmation =>
+      'هل أنت متأكد من تهيئة النظام؟ سيتم فقدان جميع البيانات.';
+
+  @override
+  String get format => 'تهيئة';
+
+  @override
+  String get setupPassword => 'إعداد كلمة المرور';
+
+  @override
+  String get enterPassword => 'أدخل كلمة المرور';
+
+  @override
+  String get authenticateToUnlock => 'يرجى التحقق لفتح وازلي';
+
+  @override
+  String get securityEnabled => 'تم تفعيل الأمان بنجاح';
+
+  @override
+  String get securityDisabled => 'تم تعطيل الأمان بنجاح';
+
+  @override
+  String get backupExported => 'تم تصدير النسخة الاحتياطية بنجاح';
+
+  @override
+  String get backupRestored => 'تم استرداد البيانات بنجاح';
+
+  @override
+  String get backupFailed => 'فشلت عملية النسخ الاحتياطي';
+
+  @override
+  String get theyPaidMe => 'دفعوا لي';
+
+  @override
+  String get iPaidThem => 'دفعت لهم';
+
+  @override
+  String get miniSidebar => 'شريط جانبي مصغر';
+
+  @override
+  String get miniSidebarDesc => 'إظهار أيقونات التنقل في الجانب للوصول السريع';
 }

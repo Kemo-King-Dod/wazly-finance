@@ -17,6 +17,9 @@ import 'features/wallet/domain/usecases/calculate_net_worth_usecase.dart';
 import 'features/wallet/domain/usecases/delete_account_usecase.dart';
 import 'features/wallet/presentation/blocs/wallet_bloc.dart';
 import 'features/wallet/presentation/blocs/settings/settings_bloc.dart';
+import 'core/services/backup_service.dart';
+import 'core/services/security_service.dart';
+import 'core/services/notification_service.dart';
 
 final sl = GetIt.instance;
 
@@ -29,6 +32,9 @@ Future<void> initializeDependencies() async {
   Hive.registerAdapter(TransactionModelAdapter());
   Hive.registerAdapter(AccountModelAdapter());
   Hive.registerAdapter(AuditLogModelAdapter());
+
+  // Open boxes
+  await Hive.openBox('settings');
 
   // Data Sources
   final localDataSource = WalletLocalDataSourceImpl();
@@ -56,6 +62,11 @@ Future<void> initializeDependencies() async {
       getAccountBalanceUseCase: sl(),
     ),
   );
+
+  // Services
+  sl.registerLazySingleton(() => BackupService());
+  sl.registerLazySingleton(() => SecurityService());
+  sl.registerLazySingleton(() => NotificationService());
 
   // BLoC
   sl.registerFactory(

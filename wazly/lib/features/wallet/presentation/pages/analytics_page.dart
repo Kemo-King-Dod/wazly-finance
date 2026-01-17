@@ -8,6 +8,9 @@ import '../blocs/wallet_state.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/time_filter.dart';
 import '../widgets/wazly_drawer_premium.dart';
+import '../widgets/wazly_navigation_rail.dart';
+import '../blocs/settings/settings_bloc.dart';
+import '../blocs/settings/settings_state.dart';
 
 /// Analytics page showing spending insights with pie charts
 class AnalyticsPage extends StatefulWidget {
@@ -92,76 +95,102 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
           );
         },
       ),
-      body: BlocBuilder<WalletBloc, WalletState>(
-        builder: (context, state) {
-          if (state is WalletAnalyticsLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppTheme.incomeColor),
-            );
-          }
-
-          if (state is WalletError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 64,
-                    color: AppTheme.debtColor,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: AppTheme.textPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => context.read<WalletBloc>().add(
-                      FetchAnalyticsData(
-                        state is WalletAnalyticsLoaded
-                            ? (state as WalletAnalyticsLoaded).currentFilter
-                            : TimeFilter.thisMonth,
-                      ),
-                    ),
-                    child: Text(l10n.retry),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          if (state is WalletAnalyticsLoaded) {
-            return _buildAnalyticsContent(state);
-          }
-
-          // Handle initial/fallback states
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircularProgressIndicator(color: AppTheme.incomeColor),
-                const SizedBox(height: 16),
-                Text(
-                  'Preparing Analytics...',
-                  style: TextStyle(color: AppTheme.textSecondary),
+      body: BlocBuilder<SettingsBloc, SettingsState>(
+        builder: (context, settingsState) {
+          return Row(
+            children: [
+              if (settingsState.isNavigationRailEnabled)
+                WazlyNavigationRail(
+                  currentRoute: '/analytics',
+                  onNavigate: (route) {
+                    if (route != '/analytics') {
+                      Navigator.pushReplacementNamed(context, route);
+                    }
+                  },
                 ),
-              ],
-            ),
+              Expanded(
+                child: BlocBuilder<WalletBloc, WalletState>(
+                  builder: (context, state) {
+                    if (state is WalletAnalyticsLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppTheme.incomeColor,
+                        ),
+                      );
+                    }
+
+                    if (state is WalletError) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: AppTheme.debtColor,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error',
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                            ),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                              ),
+                              child: Text(
+                                state.message,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(color: AppTheme.textSecondary),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () => context.read<WalletBloc>().add(
+                                FetchAnalyticsData(
+                                  state is WalletAnalyticsLoaded
+                                      ? (state as WalletAnalyticsLoaded)
+                                            .currentFilter
+                                      : TimeFilter.thisMonth,
+                                ),
+                              ),
+                              child: Text(l10n.retry),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    if (state is WalletAnalyticsLoaded) {
+                      return _buildAnalyticsContent(state);
+                    }
+
+                    // Handle initial/fallback states
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: AppTheme.incomeColor,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Preparing Analytics...',
+                            style: TextStyle(color: AppTheme.textSecondary),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -177,7 +206,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             Icon(
               Icons.pie_chart_outline_rounded,
               size: 64,
-              color: AppTheme.textSecondary.withOpacity(0.5),
+              color: AppTheme.textSecondary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
@@ -326,7 +355,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                 ),
               ),
             );
-          }).toList(),
+          }),
         ], // End of Column children
       ), // End of Column
     ); // End of SingleChildScrollView

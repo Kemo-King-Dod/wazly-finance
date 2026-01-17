@@ -47,5 +47,7 @@
 	<true/>
 	<key>NSContactsUsageDescription</key>
 	<string>Wazly needs access to your contacts to help you quickly add accounts for tracking debts.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Wazly needs access to Face ID to secure your wallet data.</string>
 </dict>
 </plist>

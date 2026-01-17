@@ -30,6 +30,7 @@ class _AddDebtPageState extends State<AddDebtPage> {
   DebtType _debtType = DebtType.theyOweMe;
   DateTime? _dueDate;
   bool _hasNotification = false;
+  bool _settlementIsIncome = true; // True if they pay me, False if I pay them
   List<AccountEntity> _allAccounts = [];
   List<AccountEntity> _filteredAccounts = [];
   bool _showAccountSearch = false;
@@ -88,7 +89,7 @@ class _AddDebtPageState extends State<AddDebtPage> {
       } else if (_debtType == DebtType.iOweThem) {
         isIncome = true; // Income: money coming in (borrowing)
       } else {
-        isIncome = false; // Settlement
+        isIncome = _settlementIsIncome; // Settlement
       }
 
       final transaction = TransactionEntity(
@@ -376,7 +377,66 @@ class _AddDebtPageState extends State<AddDebtPage> {
             ),
           ],
         ),
+        if (_debtType == DebtType.settlement) ...[
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildSettlementDirectionOption(
+                  label: l10n.theyPaidMe,
+                  isSelected: _settlementIsIncome,
+                  onTap: () => setState(() => _settlementIsIncome = true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSettlementDirectionOption(
+                  label: l10n.iPaidThem,
+                  isSelected: !_settlementIsIncome,
+                  onTap: () => setState(() => _settlementIsIncome = false),
+                ),
+              ),
+            ],
+          ),
+        ],
       ],
+    );
+  }
+
+  Widget _buildSettlementDirectionOption({
+    required String label,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: isSelected
+          ? AppTheme.incomeColor.withValues(alpha: 0.1)
+          : AppTheme.cardColor,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: isSelected
+                  ? AppTheme.incomeColor
+                  : AppTheme.textSecondary.withValues(alpha: 0.1),
+            ),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? AppTheme.incomeColor : AppTheme.textSecondary,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 13,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ),
     );
   }
 
@@ -567,7 +627,7 @@ class _AddDebtPageState extends State<AddDebtPage> {
           Switch(
             value: _hasNotification,
             onChanged: (value) => setState(() => _hasNotification = value),
-            activeColor: AppTheme.incomeColor,
+            activeThumbColor: AppTheme.incomeColor,
           ),
         ],
       ),

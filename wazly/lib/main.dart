@@ -12,6 +12,7 @@ import 'features/wallet/presentation/blocs/settings/settings_state.dart';
 import 'l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/wallet/presentation/pages/settings_page.dart';
+import 'features/wallet/presentation/pages/security_lock_page.dart';
 import 'features/wallet/presentation/blocs/wallet_bloc.dart';
 
 void main() async {
@@ -46,6 +47,7 @@ class WazlyApp extends StatelessWidget {
               GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: const [Locale('en'), Locale('ar')],
+            builder: (context, child) => SecurityLockPage(child: child!),
             initialRoute: '/',
             routes: {
               '/': (context) => const DashboardPage(),

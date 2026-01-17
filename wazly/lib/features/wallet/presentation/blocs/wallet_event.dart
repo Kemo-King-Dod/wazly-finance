@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../domain/entities/account_sort.dart';
 import '../../domain/entities/transaction_entity.dart';
 import '../../domain/entities/account_entity.dart';
 import '../../domain/entities/time_filter.dart';
@@ -71,9 +72,14 @@ class DeleteAccountEvent extends WalletEvent {
 class SearchAccounts extends WalletEvent {
   final String query;
   final AccountFilter filter;
+  final AccountSort sortType;
 
-  const SearchAccounts({this.query = '', this.filter = AccountFilter.all});
+  const SearchAccounts({
+    this.query = '',
+    this.filter = AccountFilter.all,
+    this.sortType = AccountSort.name,
+  });
 
   @override
-  List<Object?> get props => [query, filter];
+  List<Object?> get props => [query, filter, sortType];
 }

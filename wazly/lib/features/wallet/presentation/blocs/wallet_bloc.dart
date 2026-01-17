@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/account_sort.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../../../injection_container.dart';
 import '../../domain/entities/transaction_entity.dart';
@@ -255,6 +256,7 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
         emit(
           WalletAccountsLoaded(
             accounts: accounts,
+            totalBalance: netWorth.vaultBalance,
             debtAssets: netWorth.debtAssets,
             debtLiabilities: netWorth.debtLiabilities,
           ),
@@ -314,40 +316,71 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
             return nameMatch || phoneMatch;
           }).toList();
 
-          if (event.filter != AccountFilter.all) {
-            final filteredWithBalance = <AccountEntity>[];
-            final getBalanceUseCase = sl<GetAccountBalanceUseCase>();
+          // Filtering & Sorting Logic
+          final getBalanceUseCase = sl<GetAccountBalanceUseCase>();
+          final accountWithBalances = <AccountEntity, AccountBalance>{};
+          final filteredWithStatus = <AccountEntity>[];
 
-            for (final account in filteredAccounts) {
-              final balanceResult = await getBalanceUseCase(
-                AccountBalanceParams(accountId: account.id),
-              );
-              final balance = balanceResult.fold((_) => null, (b) => b);
+          for (final account in filteredAccounts) {
+            final balanceResult = await getBalanceUseCase(
+              AccountBalanceParams(accountId: account.id),
+            );
+            final balance = balanceResult.fold(
+              (_) => const AccountBalance(debtAssets: 0, debtLiabilities: 0),
+              (b) => b,
+            );
+            accountWithBalances[account] = balance;
 
-              if (balance != null) {
-                bool matches = false;
-
-                switch (event.filter) {
-                  case AccountFilter.owedToMe:
-                    matches = balance.debtAssets > 0;
-                    break;
-                  case AccountFilter.iOwe:
-                    matches = balance.debtLiabilities > 0;
-                    break;
-                  case AccountFilter.settled:
-                    matches =
-                        balance.debtAssets == 0 && balance.debtLiabilities == 0;
-                    break;
-                  case AccountFilter.all:
-                    matches = true;
-                    break;
-                }
-
-                if (matches) filteredWithBalance.add(account);
-              }
+            // Apply Status Filter
+            bool matchesStatus = false;
+            switch (event.filter) {
+              case AccountFilter.owedToMe:
+                matchesStatus = balance.debtAssets > 0;
+                break;
+              case AccountFilter.iOwe:
+                matchesStatus = balance.debtLiabilities > 0;
+                break;
+              case AccountFilter.settled:
+                matchesStatus =
+                    balance.debtAssets == 0 && balance.debtLiabilities == 0;
+                break;
+              case AccountFilter.all:
+                matchesStatus = true;
+                break;
             }
-            filteredAccounts = filteredWithBalance;
+
+            if (matchesStatus) {
+              filteredWithStatus.add(account);
+            }
           }
+
+          filteredWithStatus.sort((a, b) {
+            final balanceA = accountWithBalances[a]!;
+            final balanceB = accountWithBalances[b]!;
+
+            switch (event.sortType) {
+              case AccountSort.name:
+                return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+              case AccountSort.balance:
+                final totalDebtA =
+                    balanceA.debtAssets + balanceA.debtLiabilities;
+                final totalDebtB =
+                    balanceB.debtAssets + balanceB.debtLiabilities;
+                return totalDebtB.compareTo(
+                  totalDebtA,
+                ); // Highest balance first
+              case AccountSort.recent:
+                if (balanceA.lastActivity == null) return 1;
+                if (balanceB.lastActivity == null) return -1;
+                return balanceB.lastActivity!.compareTo(balanceA.lastActivity!);
+              case AccountSort.dueDate:
+                if (balanceA.nextDueDate == null) return 1;
+                if (balanceB.nextDueDate == null) return -1;
+                return balanceA.nextDueDate!.compareTo(balanceB.nextDueDate!);
+            }
+          });
+
+          filteredAccounts = filteredWithStatus;
 
           final netWorthResult = await calculateNetWorthUseCase(
             const NoParams(),
@@ -357,9 +390,12 @@ class WalletBloc extends Bloc<WalletEvent, WalletState> {
             (netWorth) => emit(
               WalletAccountsLoaded(
                 accounts: filteredAccounts,
+                totalBalance: netWorth.vaultBalance,
                 debtAssets: netWorth.debtAssets,
                 debtLiabilities: netWorth.debtLiabilities,
                 searchQuery: event.query,
+                filter: event.filter,
+                currentSort: event.sortType,
               ),
             ),
           );

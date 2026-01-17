@@ -57,6 +57,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get language => 'Language';
 
   @override
+  String get appearance => 'Appearance';
+
+  @override
   String get english => 'English';
 
   @override
@@ -237,6 +240,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sortByDueDate => 'By Due Date';
 
   @override
+  String get sortByBalance => 'By Balance';
+
+  @override
+  String get sortByRecent => 'By Recent Activity';
+
+  @override
   String get search => 'Search';
 
   @override
@@ -275,4 +284,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get dataManagement => 'Data Management';
+
+  @override
+  String get backupData => 'Backup Data';
+
+  @override
+  String get restoreData => 'Restore Data';
+
+  @override
+  String get systemReset => 'System Reset';
+
+  @override
+  String get security => 'Security';
+
+  @override
+  String get appLock => 'App Lock';
+
+  @override
+  String get biometric => 'Biometric';
+
+  @override
+  String get password => 'Password';
+
+  @override
+  String get formatConfirmation =>
+      'Are you sure you want to format the system? All data will be lost.';
+
+  @override
+  String get format => 'Format';
+
+  @override
+  String get setupPassword => 'Setup Password';
+
+  @override
+  String get enterPassword => 'Enter Password';
+
+  @override
+  String get authenticateToUnlock => 'Please authenticate to unlock Wazly';
+
+  @override
+  String get securityEnabled => 'Security enabled successfully';
+
+  @override
+  String get securityDisabled => 'Security disabled successfully';
+
+  @override
+  String get backupExported => 'Backup exported successfully';
+
+  @override
+  String get backupRestored => 'Backup restored successfully';
+
+  @override
+  String get backupFailed => 'Backup operation failed';
+
+  @override
+  String get theyPaidMe => 'They paid me';
+
+  @override
+  String get iPaidThem => 'I paid them';
+
+  @override
+  String get miniSidebar => 'Mini-Sidebar';
+
+  @override
+  String get miniSidebarDesc =>
+      'Show navigation icons on the side for quick access';
 }

@@ -194,6 +194,12 @@ abstract class AppLocalizations {
   /// **'Language'**
   String get language;
 
+  /// No description provided for @appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearance;
+
   /// No description provided for @english.
   ///
   /// In en, this message translates to:
@@ -554,6 +560,18 @@ abstract class AppLocalizations {
   /// **'By Due Date'**
   String get sortByDueDate;
 
+  /// No description provided for @sortByBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'By Balance'**
+  String get sortByBalance;
+
+  /// No description provided for @sortByRecent.
+  ///
+  /// In en, this message translates to:
+  /// **'By Recent Activity'**
+  String get sortByRecent;
+
   /// No description provided for @search.
   ///
   /// In en, this message translates to:
@@ -631,6 +649,138 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get delete;
+
+  /// No description provided for @dataManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Data Management'**
+  String get dataManagement;
+
+  /// No description provided for @backupData.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup Data'**
+  String get backupData;
+
+  /// No description provided for @restoreData.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore Data'**
+  String get restoreData;
+
+  /// No description provided for @systemReset.
+  ///
+  /// In en, this message translates to:
+  /// **'System Reset'**
+  String get systemReset;
+
+  /// No description provided for @security.
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// No description provided for @appLock.
+  ///
+  /// In en, this message translates to:
+  /// **'App Lock'**
+  String get appLock;
+
+  /// No description provided for @biometric.
+  ///
+  /// In en, this message translates to:
+  /// **'Biometric'**
+  String get biometric;
+
+  /// No description provided for @password.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get password;
+
+  /// No description provided for @formatConfirmation.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to format the system? All data will be lost.'**
+  String get formatConfirmation;
+
+  /// No description provided for @format.
+  ///
+  /// In en, this message translates to:
+  /// **'Format'**
+  String get format;
+
+  /// No description provided for @setupPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Setup Password'**
+  String get setupPassword;
+
+  /// No description provided for @enterPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Password'**
+  String get enterPassword;
+
+  /// No description provided for @authenticateToUnlock.
+  ///
+  /// In en, this message translates to:
+  /// **'Please authenticate to unlock Wazly'**
+  String get authenticateToUnlock;
+
+  /// No description provided for @securityEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Security enabled successfully'**
+  String get securityEnabled;
+
+  /// No description provided for @securityDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Security disabled successfully'**
+  String get securityDisabled;
+
+  /// No description provided for @backupExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup exported successfully'**
+  String get backupExported;
+
+  /// No description provided for @backupRestored.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup restored successfully'**
+  String get backupRestored;
+
+  /// No description provided for @backupFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Backup operation failed'**
+  String get backupFailed;
+
+  /// No description provided for @theyPaidMe.
+  ///
+  /// In en, this message translates to:
+  /// **'They paid me'**
+  String get theyPaidMe;
+
+  /// No description provided for @iPaidThem.
+  ///
+  /// In en, this message translates to:
+  /// **'I paid them'**
+  String get iPaidThem;
+
+  /// No description provided for @miniSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mini-Sidebar'**
+  String get miniSidebar;
+
+  /// No description provided for @miniSidebarDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Show navigation icons on the side for quick access'**
+  String get miniSidebarDesc;
 }
 
 class _AppLocalizationsDelegate
