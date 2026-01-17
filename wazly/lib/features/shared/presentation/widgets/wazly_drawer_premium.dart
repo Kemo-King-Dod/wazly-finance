@@ -9,6 +9,9 @@ import '../../../accounts/presentation/blocs/account_bloc.dart';
 import '../../../accounts/presentation/blocs/account_state.dart';
 import '../../../analytics/presentation/blocs/analytics_bloc.dart';
 import '../../../analytics/presentation/blocs/analytics_state.dart';
+import '../../../profile/presentation/blocs/profile_bloc.dart';
+import '../../../profile/presentation/blocs/profile_state.dart';
+import 'dart:io';
 
 /// Premium glassmorphism navigation drawer for Wazly
 class WazlyDrawerPremium extends StatefulWidget {
@@ -104,12 +107,24 @@ class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
                                 ),
                                 _buildNavItem(
                                   context,
-                                  icon: Icons.people_alt_rounded,
+                                  icon: Icons.account_balance_wallet_rounded,
                                   label: l10n.accounts,
                                   route: '/accounts',
                                   isSelected:
                                       widget.currentRoute == '/accounts',
                                 ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Divider(
+                                    color: AppTheme.textSecondary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
                                 _buildNavItem(
                                   context,
                                   icon: Icons.pie_chart_rounded,
@@ -130,20 +145,92 @@ class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
                             ),
                           ),
 
-                          // Debt Summary Footer
-                          _buildBreakdownSection(l10n),
-
-                          // Version Info
-                          Padding(
+                          // Google Sign-in Button at Bottom
+                          Container(
                             padding: const EdgeInsets.all(24),
-                            child: Text(
-                              'Wazly v1.0.1',
-                              style: TextStyle(
-                                color: AppTheme.textSecondary.withValues(
-                                  alpha: 0.5,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        AppTheme.incomeColor.withValues(
+                                          alpha: 0.1,
+                                        ),
+                                        AppTheme.incomeColor.withValues(
+                                          alpha: 0.05,
+                                        ),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: AppTheme.incomeColor.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () {
+                                        // TODO: Implement Google Sign-in
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            content: Text(l10n.comingSoon),
+                                            backgroundColor:
+                                                AppTheme.incomeColor,
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(16),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 20,
+                                          vertical: 16,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Icon(
+                                              Icons.g_mobiledata_rounded,
+                                              size: 32,
+                                              color: AppTheme.incomeColor,
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Flexible(
+                                              child: Text(
+                                                l10n.signInWithGoogle,
+                                                style: const TextStyle(
+                                                  color: AppTheme.textPrimary,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                                fontSize: 12,
-                              ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Wazly v1.0.1',
+                                  style: TextStyle(
+                                    color: AppTheme.textSecondary.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -164,73 +251,100 @@ class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
     AppLocalizations l10n,
     double netWorth,
   ) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.incomeColor,
-                      AppTheme.incomeColor.withValues(alpha: 0.6),
-                    ],
-                  ),
+    return BlocBuilder<ProfileBloc, ProfileState>(
+      builder: (context, profileState) {
+        String userName = 'User';
+        String? profilePicture;
+
+        if (profileState is ProfileLoaded) {
+          userName = profileState.profile.name;
+          profilePicture = profileState.profile.profilePicture;
+        }
+
+        return GestureDetector(
+          onTap: () {
+            Navigator.pop(context); // Close drawer
+            Navigator.pushNamed(context, '/profile');
+          },
+          child: Container(
+            padding: const EdgeInsets.fromLTRB(24, 60, 24, 30),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Profile Avatar
+                    Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient:
+                            profilePicture == null ||
+                                !File(profilePicture).existsSync()
+                            ? LinearGradient(
+                                colors: [
+                                  AppTheme.incomeColor,
+                                  AppTheme.incomeColor.withValues(alpha: 0.6),
+                                ],
+                              )
+                            : null,
+                        image:
+                            profilePicture != null &&
+                                File(profilePicture).existsSync()
+                            ? DecorationImage(
+                                image: FileImage(File(profilePicture)),
+                                fit: BoxFit.cover,
+                              )
+                            : null,
+                      ),
+                      child:
+                          profilePicture == null ||
+                              !File(profilePicture).existsSync()
+                          ? const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 30,
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.welcomeBack,
+                            style: const TextStyle(
+                              color: AppTheme.textSecondary,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                              color: AppTheme.textPrimary,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Edit icon hint
+                    Icon(
+                      Icons.edit_rounded,
+                      color: AppTheme.textSecondary.withValues(alpha: 0.5),
+                      size: 18,
+                    ),
+                  ],
                 ),
-                child: const Icon(Icons.person, color: Colors.white, size: 30),
-              ),
-              const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Welcome back',
-                    style: TextStyle(
-                      color: AppTheme.textSecondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  Text(
-                    'User Name',
-                    style: TextStyle(
-                      color: AppTheme.textPrimary,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          Text(
-            l10n.totalNetWorth,
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 14,
-              letterSpacing: 1.2,
-              fontWeight: FontWeight.w600,
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          FittedBox(
-            child: Text(
-              'د.ل ${netWorth.toStringAsFixed(2)}',
-              style: const TextStyle(
-                color: AppTheme.incomeColor,
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -245,9 +359,19 @@ class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
       padding: const EdgeInsets.only(bottom: 8),
       child: InkWell(
         onTap: () {
-          Navigator.pop(context); // Close drawer
           if (!isSelected) {
-            Navigator.pushReplacementNamed(context, route);
+            Navigator.pop(context); // Close drawer first
+            if (route == '/') {
+              // For home, use pushNamedAndRemoveUntil to clear stack
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                route,
+                (route) => false,
+              );
+            } else {
+              // For other routes, use pushNamed to allow back navigation
+              Navigator.pushNamed(context, route);
+            }
           }
         },
         borderRadius: BorderRadius.circular(16),
@@ -269,110 +393,33 @@ class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
                 size: 24,
               ),
               const SizedBox(width: 16),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected
-                      ? AppTheme.textPrimary
-                      : AppTheme.textSecondary,
-                  fontSize: 16,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                ),
-              ),
-              if (isSelected) ...[
-                const Spacer(),
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: AppTheme.incomeColor,
-                    shape: BoxShape.circle,
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    color: isSelected
+                        ? AppTheme.incomeColor
+                        : AppTheme.textSecondary,
+                    fontSize: 16,
+                    fontWeight: isSelected
+                        ? FontWeight.w600
+                        : FontWeight.normal,
                   ),
                 ),
-              ],
+              ),
+              if (isSelected)
+                Container(
+                  width: 4,
+                  height: 24,
+                  decoration: BoxDecoration(
+                    color: AppTheme.incomeColor,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
             ],
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBreakdownSection(AppLocalizations l10n) {
-    return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppTheme.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: AppTheme.incomeColor.withValues(alpha: 0.05),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            l10n.totalNetWorth.toUpperCase(),
-            style: const TextStyle(
-              color: AppTheme.textSecondary,
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const SizedBox(height: 16),
-          _buildBreakdownItem(
-            l10n.vaultBalance,
-            _lastTotalBalance,
-            AppTheme.textPrimary,
-          ),
-          const SizedBox(height: 12),
-          _buildBreakdownItem(
-            l10n.debtAssets,
-            _lastDebtAssets,
-            AppTheme.incomeColor,
-            isAddition: true,
-          ),
-          const SizedBox(height: 12),
-          _buildBreakdownItem(
-            l10n.debtLiabilities,
-            _lastDebtLiabilities,
-            AppTheme.debtColor,
-            isSubtraction: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBreakdownItem(
-    String label,
-    double amount,
-    Color color, {
-    bool isAddition = false,
-    bool isSubtraction = false,
-  }) {
-    String prefix = '';
-    if (isAddition) prefix = '+ ';
-    if (isSubtraction) prefix = '- ';
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
-        ),
-        Text(
-          '$prefixد.ل ${amount.toStringAsFixed(2)}',
-          style: TextStyle(
-            color: color.withValues(alpha: 0.9),
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
-      ],
     );
   }
 }

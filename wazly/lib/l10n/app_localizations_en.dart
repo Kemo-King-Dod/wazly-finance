@@ -270,6 +270,54 @@ class AppLocalizationsEn extends AppLocalizations {
   String get overdue => 'Overdue';
 
   @override
+  String get profile => 'Profile';
+
+  @override
+  String get editProfile => 'Edit Profile';
+
+  @override
+  String get profileUpdated => 'Profile updated successfully';
+
+  @override
+  String get name => 'Name';
+
+  @override
+  String get nameRequired => 'Name is required';
+
+  @override
+  String get email => 'Email';
+
+  @override
+  String get phone => 'Phone';
+
+  @override
+  String get currency => 'Currency';
+
+  @override
+  String get notSet => 'Not set';
+
+  @override
+  String get welcomeBack => 'Welcome back';
+
+  @override
+  String get signInWithGoogle => 'Sign in with Google';
+
+  @override
+  String get comingSoon => 'Coming soon!';
+
+  @override
+  String get owedToMe => 'Owed to me';
+
+  @override
+  String get iOwe => 'I owe';
+
+  @override
+  String get welcomeTagline => 'Manage your finances with ease';
+
+  @override
+  String get continueWithoutSignIn => 'Continue without sign-in';
+
+  @override
   String get dueIn => 'Due in';
 
   @override

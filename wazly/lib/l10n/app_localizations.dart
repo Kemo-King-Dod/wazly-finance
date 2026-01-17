@@ -620,6 +620,102 @@ abstract class AppLocalizations {
   /// **'Overdue'**
   String get overdue;
 
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// No description provided for @editProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// No description provided for @profileUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated successfully'**
+  String get profileUpdated;
+
+  /// No description provided for @name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get name;
+
+  /// No description provided for @nameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Name is required'**
+  String get nameRequired;
+
+  /// No description provided for @email.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get email;
+
+  /// No description provided for @phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get phone;
+
+  /// No description provided for @currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get currency;
+
+  /// No description provided for @notSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get notSet;
+
+  /// No description provided for @welcomeBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome back'**
+  String get welcomeBack;
+
+  /// No description provided for @signInWithGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get signInWithGoogle;
+
+  /// No description provided for @comingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Coming soon!'**
+  String get comingSoon;
+
+  /// No description provided for @owedToMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Owed to me'**
+  String get owedToMe;
+
+  /// No description provided for @iOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'I owe'**
+  String get iOwe;
+
+  /// No description provided for @welcomeTagline.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage your finances with ease'**
+  String get welcomeTagline;
+
+  /// No description provided for @continueWithoutSignIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue without sign-in'**
+  String get continueWithoutSignIn;
+
   /// No description provided for @dueIn.
   ///
   /// In en, this message translates to:

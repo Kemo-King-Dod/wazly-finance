@@ -150,6 +150,42 @@ class _DashboardPageState extends State<DashboardPage> {
                                 child: VaultCard(balance: state.totalBalance),
                               ),
                             ),
+                            // Debt Summary Cards
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  24,
+                                  24,
+                                  24,
+                                  0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Owed to Me Card
+                                    Expanded(
+                                      child: _buildDebtCard(
+                                        context,
+                                        title: l10n.owedToMe,
+                                        amount: state.debtAssets,
+                                        icon: Icons.arrow_downward_rounded,
+                                        color: AppTheme.incomeColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    // I Owe Card
+                                    Expanded(
+                                      child: _buildDebtCard(
+                                        context,
+                                        title: l10n.iOwe,
+                                        amount: state.debtLiabilities,
+                                        icon: Icons.arrow_upward_rounded,
+                                        color: AppTheme.debtColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                             // Recent Transactions Header
                             SliverToBoxAdapter(
                               child: Padding(
@@ -325,6 +361,69 @@ class _DashboardPageState extends State<DashboardPage> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildDebtCard(
+    BuildContext context, {
+    required String title,
+    required double amount,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [color.withValues(alpha: 0.1), color.withValues(alpha: 0.05)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              'د.ل ${amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: color,
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -270,6 +270,54 @@ class AppLocalizationsAr extends AppLocalizations {
   String get overdue => 'متأخر';
 
   @override
+  String get profile => 'الملف الشخصي';
+
+  @override
+  String get editProfile => 'تعديل الملف الشخصي';
+
+  @override
+  String get profileUpdated => 'تم تحديث الملف الشخصي بنجاح';
+
+  @override
+  String get name => 'الاسم';
+
+  @override
+  String get nameRequired => 'الاسم مطلوب';
+
+  @override
+  String get email => 'البريد الإلكتروني';
+
+  @override
+  String get phone => 'الهاتف';
+
+  @override
+  String get currency => 'العملة';
+
+  @override
+  String get notSet => 'غير محدد';
+
+  @override
+  String get welcomeBack => 'مرحباً بعودتك';
+
+  @override
+  String get signInWithGoogle => 'تسجيل الدخول بجوجل';
+
+  @override
+  String get comingSoon => 'قريباً!';
+
+  @override
+  String get owedToMe => 'مستحق لي';
+
+  @override
+  String get iOwe => 'علي دين';
+
+  @override
+  String get welcomeTagline => 'إدارة أموالك بسهولة';
+
+  @override
+  String get continueWithoutSignIn => 'المتابعة بدون تسجيل';
+
+  @override
   String get dueIn => 'مستحق خلال';
 
   @override

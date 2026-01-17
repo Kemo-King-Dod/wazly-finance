@@ -23,6 +23,20 @@ import 'features/transactions/presentation/blocs/transaction_bloc.dart';
 import 'features/debts/presentation/blocs/debt_bloc.dart';
 import 'features/analytics/presentation/blocs/analytics_bloc.dart';
 import 'features/settings/presentation/blocs/settings_bloc.dart';
+import 'features/profile/data/models/profile_model.dart';
+import 'features/profile/data/datasources/profile_local_datasource.dart';
+import 'features/profile/data/repositories/profile_repository_impl.dart';
+import 'features/profile/domain/repositories/profile_repository.dart';
+import 'features/profile/domain/usecases/get_profile_usecase.dart';
+import 'features/profile/domain/usecases/update_profile_usecase.dart';
+import 'features/profile/presentation/blocs/profile_bloc.dart';
+import 'features/auth/data/datasources/auth_local_datasource.dart';
+import 'features/auth/data/repositories/auth_repository_impl.dart';
+import 'features/auth/domain/repositories/auth_repository.dart';
+import 'features/auth/domain/usecases/get_auth_status_usecase.dart';
+import 'features/auth/domain/usecases/increment_launch_count_usecase.dart';
+import 'features/auth/presentation/blocs/auth_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'core/services/backup_service.dart';
 import 'core/services/security_service.dart';
 import 'core/services/notification_service.dart';
@@ -31,6 +45,10 @@ final sl = GetIt.instance;
 
 /// Initialize dependency injection
 Future<void> initializeDependencies() async {
+  // Initialize SharedPreferences first
+  final sharedPreferences = await SharedPreferences.getInstance();
+  sl.registerLazySingleton(() => sharedPreferences);
+
   // Initialize Hive
   await Hive.initFlutter();
 
@@ -38,8 +56,13 @@ Future<void> initializeDependencies() async {
   Hive.registerAdapter(TransactionModelAdapter());
   Hive.registerAdapter(AccountModelAdapter());
   Hive.registerAdapter(AuditLogModelAdapter());
+  Hive.registerAdapter(ProfileModelAdapter());
 
   // Open boxes
+  await Hive.openBox<TransactionModel>('transactions');
+  await Hive.openBox<AccountModel>('accounts');
+  await Hive.openBox<AuditLogModel>('audit_logs');
+  await Hive.openBox<ProfileModel>('profile');
   await Hive.openBox('settings');
 
   // Data Sources
@@ -86,6 +109,16 @@ Future<void> initializeDependencies() async {
   sl.registerLazySingleton(() => SecurityService());
   sl.registerLazySingleton(() => NotificationService());
 
+  // Profile
+  sl.registerLazySingleton<ProfileLocalDataSource>(
+    () => ProfileLocalDataSourceImpl(),
+  );
+  sl.registerLazySingleton<ProfileRepository>(
+    () => ProfileRepositoryImpl(localDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => GetProfileUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+
   // BLoCs
   sl.registerFactory(
     () => TransactionBloc(
@@ -113,4 +146,21 @@ Future<void> initializeDependencies() async {
   );
 
   sl.registerLazySingleton(() => SettingsBloc());
+
+  // Profile BLoC
+  sl.registerFactory(
+    () => ProfileBloc(getProfileUseCase: sl(), updateProfileUseCase: sl()),
+  );
+
+  // Auth
+  sl.registerLazySingleton<AuthLocalDataSource>(
+    () => AuthLocalDataSourceImpl(sl()),
+  );
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl()));
+  sl.registerLazySingleton(() => GetAuthStatusUseCase(sl()));
+  sl.registerLazySingleton(() => IncrementLaunchCountUseCase(sl()));
+  sl.registerLazySingleton(
+    () =>
+        AuthBloc(getAuthStatusUseCase: sl(), incrementLaunchCountUseCase: sl()),
+  );
 }
