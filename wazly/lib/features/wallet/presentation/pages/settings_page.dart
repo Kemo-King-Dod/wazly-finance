@@ -5,8 +5,6 @@ import '../../../../core/theme/app_theme.dart';
 import '../blocs/settings/settings_bloc.dart';
 import '../blocs/settings/settings_event.dart';
 import '../blocs/settings/settings_state.dart';
-import '../blocs/wallet_bloc.dart';
-import '../blocs/wallet_state.dart';
 import '../widgets/wazly_drawer_premium.dart';
 import '../widgets/wazly_navigation_rail.dart';
 
@@ -28,26 +26,7 @@ class SettingsPage extends StatelessWidget {
           ),
         ),
       ),
-      drawer: BlocBuilder<WalletBloc, WalletState>(
-        builder: (context, state) {
-          double totalBalance = 0;
-          double debtAssets = 0;
-          double debtLiabilities = 0;
-
-          if (state is WalletLoaded) {
-            totalBalance = state.totalBalance;
-            debtAssets = state.debtAssets;
-            debtLiabilities = state.debtLiabilities;
-          }
-
-          return WazlyDrawerPremium(
-            currentRoute: '/settings',
-            totalBalance: totalBalance,
-            debtAssets: debtAssets,
-            debtLiabilities: debtLiabilities,
-          );
-        },
-      ),
+      drawer: const WazlyDrawerPremium(currentRoute: '/settings'),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
           return Row(

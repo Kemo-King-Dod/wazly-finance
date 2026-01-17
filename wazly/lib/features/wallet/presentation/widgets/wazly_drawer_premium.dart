@@ -1,27 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:ui';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../transactions/presentation/blocs/transaction_bloc.dart';
+import '../../../transactions/presentation/blocs/transaction_state.dart';
+import '../../../accounts/presentation/blocs/account_bloc.dart';
+import '../../../accounts/presentation/blocs/account_state.dart';
 
 /// Premium glassmorphism navigation drawer for Wazly
-class WazlyDrawerPremium extends StatelessWidget {
+class WazlyDrawerPremium extends StatefulWidget {
   final String currentRoute;
-  final double totalBalance;
-  final double debtAssets;
-  final double debtLiabilities;
 
-  const WazlyDrawerPremium({
-    super.key,
-    required this.currentRoute,
-    required this.totalBalance,
-    required this.debtAssets,
-    required this.debtLiabilities,
-  });
+  const WazlyDrawerPremium({super.key, required this.currentRoute});
+
+  @override
+  State<WazlyDrawerPremium> createState() => _WazlyDrawerPremiumState();
+}
+
+class _WazlyDrawerPremiumState extends State<WazlyDrawerPremium> {
+  // Cache the last known good values to prevent flickering to zero during loading
+  static double _lastTotalBalance = 0;
+  static double _lastDebtAssets = 0;
+  static double _lastDebtLiabilities = 0;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final netWorth = totalBalance + debtAssets - debtLiabilities;
 
     return Drawer(
       backgroundColor: Colors.transparent,
@@ -38,70 +43,102 @@ class WazlyDrawerPremium extends StatelessWidget {
               ),
             ),
           ),
-          child: Column(
-            children: [
-              // User Profile Header
-              _buildHeader(context, l10n, netWorth),
+          child: BlocBuilder<AccountBloc, AccountState>(
+            builder: (context, accountState) {
+              if (accountState is AccountAccountsLoaded) {
+                _lastTotalBalance = accountState.totalBalance;
+                _lastDebtAssets = accountState.debtAssets;
+                _lastDebtLiabilities = accountState.debtLiabilities;
+              }
 
-              // Navigation Items
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  children: [
-                    _buildNavItem(
-                      context,
-                      icon: Icons.dashboard_rounded,
-                      label: l10n.dashboard,
-                      route: '/',
-                      isSelected: currentRoute == '/',
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.history_rounded,
-                      label: l10n.history,
-                      route: '/history',
-                      isSelected: currentRoute == '/history',
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.people_alt_rounded,
-                      label: l10n.accounts,
-                      route: '/accounts',
-                      isSelected: currentRoute == '/accounts',
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.pie_chart_rounded,
-                      label: l10n.analytics,
-                      route: '/analytics',
-                      isSelected: currentRoute == '/analytics',
-                    ),
-                    _buildNavItem(
-                      context,
-                      icon: Icons.settings_rounded,
-                      label: l10n.settings,
-                      route: '/settings',
-                      isSelected: currentRoute == '/settings',
-                    ),
-                  ],
-                ),
-              ),
+              return BlocBuilder<TransactionBloc, TransactionState>(
+                builder: (context, transactionState) {
+                  // Update cache from transaction state too if it has totals
+                  if (transactionState is TransactionLoaded) {
+                    _lastTotalBalance = transactionState.totalBalance;
+                    _lastDebtAssets = transactionState.debtAssets;
+                    _lastDebtLiabilities = transactionState.debtLiabilities;
+                  } else if (transactionState is TransactionAnalyticsLoaded) {
+                    _lastTotalBalance = transactionState.totalBalance;
+                    _lastDebtAssets = transactionState.debtAssets;
+                    _lastDebtLiabilities = transactionState.debtLiabilities;
+                  }
 
-              // Debt Summary Footer
-              _buildDebtSummary(l10n),
+                  final netWorth =
+                      _lastTotalBalance +
+                      _lastDebtAssets -
+                      _lastDebtLiabilities;
 
-              // Version Info
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Wazly v1.0.0',
-                  style: TextStyle(
-                    color: AppTheme.textSecondary.withValues(alpha: 0.5),
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ],
+                  return Column(
+                    children: [
+                      // User Profile Header & Net Worth Section
+                      _buildHeader(context, l10n, netWorth),
+
+                      // Navigation Items
+                      Expanded(
+                        child: ListView(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          children: [
+                            _buildNavItem(
+                              context,
+                              icon: Icons.dashboard_rounded,
+                              label: l10n.dashboard,
+                              route: '/',
+                              isSelected: widget.currentRoute == '/',
+                            ),
+                            _buildNavItem(
+                              context,
+                              icon: Icons.history_rounded,
+                              label: l10n.history,
+                              route: '/history',
+                              isSelected: widget.currentRoute == '/history',
+                            ),
+                            _buildNavItem(
+                              context,
+                              icon: Icons.people_alt_rounded,
+                              label: l10n.accounts,
+                              route: '/accounts',
+                              isSelected: widget.currentRoute == '/accounts',
+                            ),
+                            _buildNavItem(
+                              context,
+                              icon: Icons.pie_chart_rounded,
+                              label: l10n.analytics,
+                              route: '/analytics',
+                              isSelected: widget.currentRoute == '/analytics',
+                            ),
+                            _buildNavItem(
+                              context,
+                              icon: Icons.settings_rounded,
+                              label: l10n.settings,
+                              route: '/settings',
+                              isSelected: widget.currentRoute == '/settings',
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Debt Summary Footer
+                      _buildBreakdownSection(l10n),
+
+                      // Version Info
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(
+                          'Wazly v1.0.1',
+                          style: TextStyle(
+                            color: AppTheme.textSecondary.withValues(
+                              alpha: 0.5,
+                            ),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
           ),
         ),
       ),
@@ -160,19 +197,22 @@ class WazlyDrawerPremium extends StatelessWidget {
           const SizedBox(height: 30),
           Text(
             l10n.totalNetWorth,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppTheme.textSecondary,
               fontSize: 14,
               letterSpacing: 1.2,
+              fontWeight: FontWeight.w600,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            'د.ل ${netWorth.toStringAsFixed(2)}',
-            style: TextStyle(
-              color: AppTheme.incomeColor,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
+          FittedBox(
+            child: Text(
+              'د.ل ${netWorth.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: AppTheme.incomeColor,
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -243,29 +283,66 @@ class WazlyDrawerPremium extends StatelessWidget {
     );
   }
 
-  Widget _buildDebtSummary(AppLocalizations l10n) {
+  Widget _buildBreakdownSection(AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppTheme.cardColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: AppTheme.incomeColor.withValues(alpha: 0.05),
+          width: 1,
+        ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildDebtItem(l10n.debtAssets, debtAssets, AppTheme.incomeColor),
+          Text(
+            l10n.totalNetWorth.toUpperCase(),
+            style: const TextStyle(
+              color: AppTheme.textSecondary,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.0,
+            ),
+          ),
           const SizedBox(height: 16),
-          _buildDebtItem(
+          _buildBreakdownItem(
+            l10n.vaultBalance,
+            _lastTotalBalance,
+            AppTheme.textPrimary,
+          ),
+          const SizedBox(height: 12),
+          _buildBreakdownItem(
+            l10n.debtAssets,
+            _lastDebtAssets,
+            AppTheme.incomeColor,
+            isAddition: true,
+          ),
+          const SizedBox(height: 12),
+          _buildBreakdownItem(
             l10n.debtLiabilities,
-            debtLiabilities,
+            _lastDebtLiabilities,
             AppTheme.debtColor,
+            isSubtraction: true,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDebtItem(String label, double amount, Color color) {
+  Widget _buildBreakdownItem(
+    String label,
+    double amount,
+    Color color, {
+    bool isAddition = false,
+    bool isSubtraction = false,
+  }) {
+    String prefix = '';
+    if (isAddition) prefix = '+ ';
+    if (isSubtraction) prefix = '- ';
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -274,9 +351,9 @@ class WazlyDrawerPremium extends StatelessWidget {
           style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
         ),
         Text(
-          'د.ل ${amount.toStringAsFixed(2)}',
+          '$prefixد.ل ${amount.toStringAsFixed(2)}',
           style: TextStyle(
-            color: color,
+            color: color.withValues(alpha: 0.9),
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),

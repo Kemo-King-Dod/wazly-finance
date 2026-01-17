@@ -1,0 +1,15 @@
+Analyzing wazly...                                              
+
+  error • Target of URI doesn't exist: 'get_account_balance_usecase.dart' • lib/features/wallet/domain/usecases/calculate_net_worth_usecase.dart:8:8 • uri_does_not_exist
+  error • Undefined class 'GetAccountBalanceUseCase' • lib/features/wallet/domain/usecases/calculate_net_worth_usecase.dart:30:9 • undefined_class
+  error • The method 'AccountBalanceParams' isn't defined for the type 'CalculateNetWorthUseCase' • lib/features/wallet/domain/usecases/calculate_net_worth_usecase.dart:60:15 • undefined_method
+warning • Unused import: '../../../../injection_container.dart' • lib/features/wallet/presentation/blocs/wallet_bloc.dart:3:8 • unused_import
+warning • Duplicate import • lib/features/wallet/presentation/blocs/wallet_bloc.dart:13:8 • duplicate_import
+  error • Target of URI doesn't exist: '../../domain/usecases/get_account_balance_usecase.dart' • lib/features/wallet/presentation/pages/accounts_page.dart:13:8 • uri_does_not_exist
+  error • The name 'GetAccountBalanceUseCase' isn't a type, so it can't be used as a type argument • lib/features/wallet/presentation/pages/accounts_page.dart:31:33 • non_type_as_type_argument
+  error • The name 'AccountBalance' isn't a type, so it can't be used as a type argument • lib/features/wallet/presentation/pages/accounts_page.dart:396:30 • non_type_as_type_argument
+  error • The name 'AccountBalance' isn't a type, so it can't be used as a type argument • lib/features/wallet/presentation/pages/accounts_page.dart:417:10 • non_type_as_type_argument
+  error • The method 'AccountBalanceParams' isn't defined for the type '_AccountsPageState' • lib/features/wallet/presentation/pages/accounts_page.dart:419:7 • undefined_method
+  error • The name 'AccountBalance' isn't a class • lib/features/wallet/presentation/pages/accounts_page.dart:422:20 • creation_with_non_type
+  error • The name 'WalletBloc' isn't a type, so it can't be used as a type argument • lib/features/wallet/presentation/widgets/wazly_drawer_premium.dart:53:34 • non_type_as_type_argument
+

@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../blocs/wallet_bloc.dart';
-import '../blocs/wallet_event.dart';
-import '../blocs/wallet_state.dart';
+import '../../../transactions/presentation/blocs/transaction_bloc.dart';
+import '../../../transactions/presentation/blocs/transaction_event.dart';
+import '../../../transactions/presentation/blocs/transaction_state.dart';
 
 import '../widgets/vault_card.dart';
-import '../widgets/transaction_list_item.dart';
+import '../../../transactions/presentation/widgets/transaction_list_item.dart';
 import '../widgets/dashboard_skeleton.dart';
 import '../widgets/wazly_drawer_premium.dart';
 import '../../../../l10n/app_localizations.dart';
-import 'add_transaction_page.dart';
-import 'add_debt_page.dart';
+import '../../../transactions/presentation/pages/add_transaction_page.dart';
+import '../../../transactions/presentation/pages/add_debt_page.dart';
 import '../widgets/wazly_navigation_rail.dart';
 import '../blocs/settings/settings_bloc.dart';
 import '../blocs/settings/settings_state.dart';
@@ -28,8 +28,8 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-    // Fetch wallet data when page loads
-    context.read<WalletBloc>().add(const FetchWalletData());
+    // Fetch transaction data when page loads
+    context.read<TransactionBloc>().add(const FetchTransactionData());
   }
 
   @override
@@ -54,26 +54,7 @@ class _DashboardPageState extends State<DashboardPage> {
           ),
         ],
       ),
-      drawer: BlocBuilder<WalletBloc, WalletState>(
-        builder: (context, state) {
-          double totalBalance = 0;
-          double debtAssets = 0;
-          double debtLiabilities = 0;
-
-          if (state is WalletLoaded) {
-            totalBalance = state.totalBalance;
-            debtAssets = state.debtAssets;
-            debtLiabilities = state.debtLiabilities;
-          }
-
-          return WazlyDrawerPremium(
-            currentRoute: '/',
-            totalBalance: totalBalance,
-            debtAssets: debtAssets,
-            debtLiabilities: debtLiabilities,
-          );
-        },
-      ),
+      drawer: const WazlyDrawerPremium(currentRoute: '/'),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
           return Row(
@@ -88,13 +69,13 @@ class _DashboardPageState extends State<DashboardPage> {
                   },
                 ),
               Expanded(
-                child: BlocBuilder<WalletBloc, WalletState>(
+                child: BlocBuilder<TransactionBloc, TransactionState>(
                   builder: (context, state) {
-                    if (state is WalletLoading) {
+                    if (state is TransactionLoading) {
                       return const DashboardSkeleton();
                     }
 
-                    if (state is WalletError) {
+                    if (state is TransactionError) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -128,8 +109,8 @@ class _DashboardPageState extends State<DashboardPage> {
                             const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: () {
-                                context.read<WalletBloc>().add(
-                                  const FetchWalletData(),
+                                context.read<TransactionBloc>().add(
+                                  const FetchTransactionData(),
                                 );
                               },
                               icon: const Icon(Icons.refresh),
@@ -140,11 +121,11 @@ class _DashboardPageState extends State<DashboardPage> {
                       );
                     }
 
-                    if (state is WalletLoaded) {
+                    if (state is TransactionLoaded) {
                       return RefreshIndicator(
                         onRefresh: () async {
-                          context.read<WalletBloc>().add(
-                            const RefreshWalletData(),
+                          context.read<TransactionBloc>().add(
+                            const RefreshTransactionData(),
                           );
                           // Wait a bit for the refresh to complete
                           await Future.delayed(
@@ -280,19 +261,6 @@ class _DashboardPageState extends State<DashboardPage> {
                       );
                     }
 
-                    // Handle WalletAccountsLoaded - fetch full wallet data
-                    if (state is WalletAccountsLoaded) {
-                      // Trigger fetch wallet data to get full state
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        context.read<WalletBloc>().add(const FetchWalletData());
-                      });
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.incomeColor,
-                        ),
-                      );
-                    }
-
                     // For any other state, show loading
                     return const Center(
                       child: CircularProgressIndicator(
@@ -306,7 +274,7 @@ class _DashboardPageState extends State<DashboardPage> {
           );
         },
       ),
-      floatingActionButton: BlocBuilder<WalletBloc, WalletState>(
+      floatingActionButton: BlocBuilder<TransactionBloc, TransactionState>(
         builder: (context, state) {
           return Column(
             mainAxisSize: MainAxisSize.min,

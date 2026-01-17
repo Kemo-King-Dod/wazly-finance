@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../blocs/wallet_bloc.dart';
-import '../blocs/wallet_event.dart';
-import '../blocs/wallet_state.dart';
+import '../../../transactions/presentation/blocs/transaction_bloc.dart';
+import '../../../transactions/presentation/blocs/transaction_event.dart';
+import '../../../transactions/presentation/blocs/transaction_state.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../domain/entities/time_filter.dart';
+import '../../../transactions/domain/entities/time_filter.dart';
 import '../widgets/wazly_drawer_premium.dart';
 import '../widgets/wazly_navigation_rail.dart';
 import '../blocs/settings/settings_bloc.dart';
@@ -27,8 +27,8 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   void initState() {
     super.initState();
     // Fetch analytics data when page loads
-    context.read<WalletBloc>().add(
-      const FetchAnalyticsData(TimeFilter.thisMonth),
+    context.read<TransactionBloc>().add(
+      FetchAnalyticsData(TimeFilter.thisMonth),
     );
   }
 
@@ -51,50 +51,27 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             builder: (context) => PopupMenuButton<TimeFilter>(
               icon: const Icon(Icons.filter_list_rounded),
               onSelected: (filter) {
-                context.read<WalletBloc>().add(FetchAnalyticsData(filter));
+                context.read<TransactionBloc>().add(FetchAnalyticsData(filter));
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: TimeFilter.thisMonth,
-                  child: Text(TimeFilter.thisMonth.displayName),
+                  child: Text(TimeFilter.thisMonth.getDisplayName(context)),
                 ),
                 PopupMenuItem(
                   value: TimeFilter.lastMonth,
-                  child: Text(TimeFilter.lastMonth.displayName),
+                  child: Text(TimeFilter.lastMonth.getDisplayName(context)),
                 ),
                 PopupMenuItem(
                   value: TimeFilter.allTime,
-                  child: Text(TimeFilter.allTime.displayName),
+                  child: Text(TimeFilter.allTime.getDisplayName(context)),
                 ),
               ],
             ),
           ),
         ],
       ),
-      drawer: BlocBuilder<WalletBloc, WalletState>(
-        builder: (context, state) {
-          double totalBalance = 0;
-          double debtAssets = 0;
-          double debtLiabilities = 0;
-
-          if (state is WalletAnalyticsLoaded) {
-            totalBalance = state.totalBalance;
-            debtAssets = state.debtAssets;
-            debtLiabilities = state.debtLiabilities;
-          } else if (state is WalletLoaded) {
-            totalBalance = state.totalBalance;
-            debtAssets = state.debtAssets;
-            debtLiabilities = state.debtLiabilities;
-          }
-
-          return WazlyDrawerPremium(
-            currentRoute: '/analytics',
-            totalBalance: totalBalance,
-            debtAssets: debtAssets,
-            debtLiabilities: debtLiabilities,
-          );
-        },
-      ),
+      drawer: const WazlyDrawerPremium(currentRoute: '/analytics'),
       body: BlocBuilder<SettingsBloc, SettingsState>(
         builder: (context, settingsState) {
           return Row(
@@ -109,9 +86,9 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                   },
                 ),
               Expanded(
-                child: BlocBuilder<WalletBloc, WalletState>(
+                child: BlocBuilder<TransactionBloc, TransactionState>(
                   builder: (context, state) {
-                    if (state is WalletAnalyticsLoading) {
+                    if (state is TransactionAnalyticsLoading) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: AppTheme.incomeColor,
@@ -119,7 +96,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                       );
                     }
 
-                    if (state is WalletError) {
+                    if (state is TransactionError) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -152,14 +129,15 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton(
-                              onPressed: () => context.read<WalletBloc>().add(
-                                FetchAnalyticsData(
-                                  state is WalletAnalyticsLoaded
-                                      ? (state as WalletAnalyticsLoaded)
-                                            .currentFilter
-                                      : TimeFilter.thisMonth,
-                                ),
-                              ),
+                              onPressed: () =>
+                                  context.read<TransactionBloc>().add(
+                                    FetchAnalyticsData(
+                                      state is TransactionAnalyticsLoaded
+                                          ? (state as TransactionAnalyticsLoaded)
+                                                .currentFilter
+                                          : TimeFilter.thisMonth,
+                                    ),
+                                  ),
                               child: Text(l10n.retry),
                             ),
                           ],
@@ -167,7 +145,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
                       );
                     }
 
-                    if (state is WalletAnalyticsLoaded) {
+                    if (state is TransactionAnalyticsLoaded) {
                       return _buildAnalyticsContent(state);
                     }
 
@@ -197,7 +175,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 
-  Widget _buildAnalyticsContent(WalletAnalyticsLoaded state) {
+  Widget _buildAnalyticsContent(TransactionAnalyticsLoaded state) {
     if (state.categoryExpenses.isEmpty) {
       return Center(
         child: Column(
@@ -361,7 +339,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     ); // End of SingleChildScrollView
   }
 
-  Widget _buildPieChart(WalletAnalyticsLoaded state) {
+  Widget _buildPieChart(TransactionAnalyticsLoaded state) {
     return Container(
       height: 320,
       padding: const EdgeInsets.all(24),
@@ -456,7 +434,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
     );
   }
 
-  Widget _buildSummaryCard(WalletAnalyticsLoaded state) {
+  Widget _buildSummaryCard(TransactionAnalyticsLoaded state) {
     final net = state.totalIncome - state.totalExpenses;
 
     return Container(

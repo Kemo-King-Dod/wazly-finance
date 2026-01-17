@@ -4,9 +4,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:file_picker/file_picker.dart';
-import '../../features/wallet/data/models/transaction_model.dart';
-import '../../features/wallet/data/models/account_model.dart';
-import '../../features/wallet/data/models/audit_log_model.dart';
+import '../../features/transactions/data/models/transaction_model.dart';
+import '../../features/accounts/data/models/account_model.dart';
+import '../../features/transactions/data/models/audit_log_model.dart';
 
 class BackupService {
   static const String _backupFileName = 'wazly_backup.json';
