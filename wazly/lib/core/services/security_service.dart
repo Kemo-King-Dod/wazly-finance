@@ -1,56 +1,95 @@
-import 'package:local_auth/local_auth.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SecurityService {
-  final LocalAuthentication _auth = LocalAuthentication();
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _secureStorage;
+  final SharedPreferences _prefs;
+  final LocalAuthentication _localAuth;
 
-  static const String _passwordKey = 'wallet_password';
+  static const _pinKey = 'wazly_app_pin';
+  static const _appLockEnabledKey = 'wazly_app_lock_enabled';
+  static const _biometricEnabledKey = 'wazly_biometric_enabled';
+  static const _autoLockDelayKey = 'wazly_auto_lock_delay_minutes';
 
-  /// Check if biometrics are available
-  Future<bool> isBiometricAvailable() async {
-    final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-    final bool canAuthenticate =
-        canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
-    return canAuthenticate;
+  SecurityService(this._secureStorage, this._prefs, this._localAuth);
+
+  // --- PIN Management ---
+
+  Future<bool> get isPinSetup async {
+    final pin = await _secureStorage.read(key: _pinKey);
+    return pin != null && pin.isNotEmpty;
   }
 
-  /// Authenticate using biometrics
-  Future<bool> authenticateBiometric({required String reason}) async {
+  Future<void> setupPin(String pin) async {
+    await _secureStorage.write(key: _pinKey, value: pin);
+    await setAppLockEnabled(true);
+  }
+
+  Future<bool> verifyPin(String pin) async {
+    final storedPin = await _secureStorage.read(key: _pinKey);
+    return storedPin == pin;
+  }
+
+  Future<void> removePin() async {
+    await _secureStorage.delete(key: _pinKey);
+    await setAppLockEnabled(false);
+    await setBiometricEnabled(false);
+  }
+
+  Future<bool> changePin(String oldPin, String newPin) async {
+    final isValid = await verifyPin(oldPin);
+    if (!isValid) return false;
+    await _secureStorage.write(key: _pinKey, value: newPin);
+    return true;
+  }
+
+  // --- Settings ---
+
+  bool get isAppLockEnabled {
+    return _prefs.getBool(_appLockEnabledKey) ?? false;
+  }
+
+  Future<void> setAppLockEnabled(bool value) async {
+    await _prefs.setBool(_appLockEnabledKey, value);
+    if (!value) {
+      await setBiometricEnabled(false);
+    }
+  }
+
+  bool get isBiometricEnabled {
+    return _prefs.getBool(_biometricEnabledKey) ?? false;
+  }
+
+  Future<void> setBiometricEnabled(bool value) async {
+    await _prefs.setBool(_biometricEnabledKey, value);
+  }
+
+  int get autoLockDelayMinutes {
+    return _prefs.getInt(_autoLockDelayKey) ?? 0; // 0 = Immediately
+  }
+
+  Future<void> setAutoLockDelayMinutes(int minutes) async {
+    await _prefs.setInt(_autoLockDelayKey, minutes);
+  }
+
+  // --- Biometrics ---
+
+  Future<bool> canCheckBiometrics() async {
+    final isAvailable = await _localAuth.canCheckBiometrics;
+    final isDeviceSupported = await _localAuth.isDeviceSupported();
+    return isAvailable && isDeviceSupported;
+  }
+
+  Future<bool> authenticateWithBiometrics(String localizedReason) async {
     try {
-      return await _auth.authenticate(
-        localizedReason: reason,
+      return await _localAuth.authenticate(
+        localizedReason: localizedReason,
+        biometricOnly: true,
         persistAcrossBackgrounding: true,
-        biometricOnly: false,
       );
     } catch (e) {
       return false;
     }
-  }
-
-  /// Set or change the password
-  Future<void> setPassword(String password) async {
-    await _storage.write(key: _passwordKey, value: password);
-  }
-
-  /// Verify if the password is correct
-  Future<bool> verifyPassword(String password) async {
-    final storedPassword = await _storage.read(key: _passwordKey);
-    return storedPassword == password;
-  }
-
-  /// Check if the vault is locked (Security Enabled)
-  bool isSecurityEnabled() {
-    final settingsBox = Hive.box('settings');
-    return settingsBox.get('isSecurityEnabled', defaultValue: false);
-  }
-
-  /// Disable security
-  Future<void> disableSecurity() async {
-    final settingsBox = Hive.box('settings');
-    await settingsBox.put('isSecurityEnabled', false);
-    await settingsBox.put('securityType', 'none');
-    await _storage.delete(key: _passwordKey);
   }
 }

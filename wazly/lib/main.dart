@@ -1,129 +1,281 @@
 import 'package:flutter/material.dart';
-import 'core/theme/app_theme.dart';
-import 'injection_container.dart' as di;
-import 'features/home/presentation/pages/dashboard_page.dart';
-import 'features/analytics/presentation/pages/analytics_page.dart';
-import 'features/accounts/presentation/pages/accounts_page.dart';
-import 'features/debts/presentation/blocs/debt_bloc.dart';
-import 'features/profile/presentation/pages/profile_page.dart';
-import 'features/transactions/presentation/pages/transaction_history_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'features/settings/presentation/blocs/settings_bloc.dart';
-import 'features/settings/presentation/blocs/settings_event.dart';
-import 'features/settings/presentation/blocs/settings_state.dart';
-import 'l10n/app_localizations.dart';
+import 'package:wazly/l10n/app_localizations.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'features/settings/presentation/pages/settings_page.dart';
-import 'features/settings/presentation/pages/security_lock_page.dart';
-import 'features/transactions/presentation/blocs/transaction_bloc.dart';
-import 'features/accounts/presentation/blocs/account_bloc.dart';
-import 'features/analytics/presentation/blocs/analytics_bloc.dart';
-import 'features/profile/presentation/blocs/profile_bloc.dart';
-import 'features/profile/presentation/blocs/profile_event.dart';
-import 'features/auth/presentation/blocs/auth_bloc.dart';
-import 'features/auth/presentation/blocs/auth_event.dart';
-import 'features/auth/presentation/blocs/auth_state.dart';
-import 'features/auth/presentation/pages/welcome_page.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_state.dart';
+import 'package:get_it/get_it.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'dart:io';
+import 'package:drift/native.dart';
+import 'package:wazly/core/theme/app_theme.dart';
+
+// Core & Drift DB
+import 'package:wazly/core/data/local/database/app_database.dart';
+import 'package:wazly/core/data/local/database/data_event_bus.dart';
+import 'package:wazly/core/data/local/database/drift_unit_of_work.dart';
+import 'package:wazly/core/domain/repositories/unit_of_work.dart';
+import 'package:wazly/core/data/local/services/backup_restore_service.dart';
+import 'package:wazly/core/services/security_service.dart';
+import 'package:wazly/core/presentation/widgets/app_lock_wrapper.dart';
+import 'package:wazly/core/presentation/bloc/theme/theme_cubit.dart';
+import 'package:wazly/core/data/local/services/notification_service.dart';
+
+// Security Auth
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:local_auth/local_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+// Settings
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
+
+// Repos
+import 'package:wazly/core/data/local/repositories/drift_installment_repository.dart';
+import 'package:wazly/core/data/local/repositories/drift_person_repository.dart';
+import 'package:wazly/core/data/local/repositories/drift_transaction_repository.dart';
+import 'package:wazly/core/data/local/repositories/drift_treasury_repository.dart';
+import 'package:wazly/core/data/local/repositories/drift_category_repository.dart';
+
+// UseCases
+import 'package:wazly/core/domain/usecases/add_debt.dart';
+import 'package:wazly/core/domain/usecases/category_usecases.dart';
+import 'package:wazly/core/domain/usecases/add_payment.dart';
+import 'package:wazly/core/domain/usecases/add_person.dart';
+import 'package:wazly/core/domain/usecases/affect_treasury.dart';
+import 'package:wazly/core/domain/usecases/delete_person.dart';
+import 'package:wazly/core/domain/usecases/delete_transaction.dart';
+import 'package:wazly/core/domain/usecases/get_dashboard_summary.dart';
+import 'package:wazly/core/domain/usecases/get_people_with_balances.dart';
+import 'package:wazly/core/domain/usecases/get_person_by_id.dart';
+import 'package:wazly/core/domain/usecases/get_person_balance.dart';
+import 'package:wazly/core/domain/usecases/update_person.dart';
+import 'package:wazly/core/domain/usecases/get_transactions_by_person.dart';
+import 'package:wazly/core/domain/usecases/get_installment_plans_by_person.dart';
+// BLoCs
+import 'package:wazly/core/presentation/bloc/dashboard/dashboard_bloc.dart';
+import 'package:wazly/core/presentation/bloc/people/people_bloc.dart';
+import 'package:wazly/core/presentation/bloc/person_action/person_action_bloc.dart';
+import 'package:wazly/core/presentation/bloc/person_details/person_details_bloc.dart';
+import 'package:wazly/core/presentation/bloc/transaction_action/transaction_action_bloc.dart';
+import 'package:wazly/core/presentation/bloc/categories/categories_bloc.dart';
+
+// UI
+import 'package:wazly/core/presentation/pages/app_shell.dart';
+import 'package:wazly/core/presentation/pages/onboarding_screen.dart';
+import 'package:wazly/core/presentation/pages/locale_setup_screen.dart';
+
+final sl = GetIt.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await di.initializeDependencies();
-  runApp(const WazlyApp());
+  await setupDependencyInjection();
+
+  // Initialize notifications & timezone before anything runs
+  await NotificationService().init();
+
+  final sharedPrefs = sl<SharedPreferences>();
+  final hasSeenOnboarding = sharedPrefs.getBool('has_seen_onboarding') ?? false;
+  final hasCompletedLocaleSetup =
+      sharedPrefs.getBool('has_completed_locale_setup') ?? false;
+
+  runApp(
+    WazlyMinimalApp(
+      hasSeenOnboarding: hasSeenOnboarding,
+      hasCompletedLocaleSetup: hasCompletedLocaleSetup,
+    ),
+  );
 }
 
-class WazlyApp extends StatelessWidget {
-  const WazlyApp({super.key});
+Future<void> setupDependencyInjection() async {
+  // Security Services
+  final sharedPrefs = await SharedPreferences.getInstance();
+  sl.registerLazySingleton<SharedPreferences>(() => sharedPrefs);
+  sl.registerLazySingleton<FlutterSecureStorage>(
+    () => const FlutterSecureStorage(),
+  );
+  sl.registerLazySingleton<LocalAuthentication>(() => LocalAuthentication());
+
+  // Security
+  sl.registerLazySingleton<SecurityService>(
+    () => SecurityService(sl(), sl(), sl()),
+  );
+
+  // Theme & Settings
+  sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit(sl()));
+  sl.registerLazySingleton<SettingsCubit>(() => SettingsCubit(sl()));
+
+  // Setup initial theme inside bloc constructor so it loads synchronously.
+
+  // DB
+  final dbFolder = await getApplicationDocumentsDirectory();
+  final file = File(p.join(dbFolder.path, 'wazly_db_v3.sqlite'));
+  final database = AppDatabase(NativeDatabase.createInBackground(file));
+  sl.registerLazySingleton<AppDatabase>(() => database);
+
+  final eventBus = DataEventBus();
+  sl.registerLazySingleton<DataEventBus>(() => eventBus);
+
+  final unitOfWork = DriftUnitOfWork(database: sl(), eventBus: sl());
+  sl.registerLazySingleton<UnitOfWork>(() => unitOfWork);
+
+  sl.registerLazySingleton(
+    () => BackupRestoreService(database: sl(), eventBus: sl()),
+  );
+
+  // Repos
+  sl.registerLazySingleton(() => DriftPersonRepository(sl()));
+  sl.registerLazySingleton(() => DriftTransactionRepository(sl()));
+  sl.registerLazySingleton(() => DriftTreasuryRepository(sl()));
+  sl.registerLazySingleton(() => DriftInstallmentRepository(sl()));
+  sl.registerLazySingleton(() => DriftCategoryRepository(sl()));
+
+  // UseCases
+  sl.registerLazySingleton(() => CategoryUseCases(sl()));
+  sl.registerLazySingleton(() => AddPerson(sl<DriftPersonRepository>()));
+  sl.registerLazySingleton(
+    () =>
+        AddDebt(repository: sl<DriftTransactionRepository>(), unitOfWork: sl()),
+  );
+  sl.registerLazySingleton(
+    () => AddPayment(
+      transactionRepository: sl<DriftTransactionRepository>(),
+      treasuryRepository: sl<DriftTreasuryRepository>(),
+      unitOfWork: sl(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => AffectTreasury(
+      transactionRepository: sl<DriftTransactionRepository>(),
+      treasuryRepository: sl<DriftTreasuryRepository>(),
+      unitOfWork: sl(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => DeleteTransaction(
+      transactionRepository: sl<DriftTransactionRepository>(),
+      treasuryRepository: sl<DriftTreasuryRepository>(),
+      unitOfWork: sl(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => DeletePerson(
+      personRepository: sl<DriftPersonRepository>(),
+      transactionRepository: sl<DriftTransactionRepository>(),
+      installmentRepository: sl<DriftInstallmentRepository>(),
+      treasuryRepository: sl<DriftTreasuryRepository>(),
+      unitOfWork: sl(),
+    ),
+  );
+  sl.registerLazySingleton(
+    () => GetPeopleWithBalances(sl<DriftPersonRepository>()),
+  );
+  sl.registerLazySingleton(() => GetPersonById(sl<DriftPersonRepository>()));
+  sl.registerLazySingleton(() => UpdatePerson(sl<DriftPersonRepository>()));
+  sl.registerLazySingleton(() => GetPersonBalance(sl<DriftPersonRepository>()));
+  sl.registerLazySingleton(
+    () => GetTransactionsByPerson(sl<DriftTransactionRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetInstallmentPlansByPerson(sl<DriftInstallmentRepository>()),
+  );
+  sl.registerLazySingleton(
+    () => GetDashboardSummary(
+      treasuryRepository: sl<DriftTreasuryRepository>(),
+      transactionRepository: sl<DriftTransactionRepository>(),
+      getPeopleWithBalances: sl(),
+    ),
+  );
+
+  // Blocs
+  sl.registerFactory(
+    () => DashboardBloc(getDashboardSummary: sl(), dataEventBus: sl()),
+  );
+  sl.registerFactory(
+    () => PeopleBloc(getPeopleWithBalances: sl(), dataEventBus: sl()),
+  );
+  sl.registerFactory(
+    () => PersonDetailsBloc(
+      getPersonById: sl(),
+      getPersonBalance: sl(),
+      getTransactionsByPerson: sl(),
+      getInstallmentPlansByPerson: sl(),
+      dataEventBus: sl(),
+    ),
+  );
+  sl.registerFactory(
+    () => PersonActionBloc(deletePerson: sl(), updatePerson: sl()),
+  );
+  sl.registerFactory(
+    () => TransactionActionBloc(
+      addDebt: sl(),
+      addPayment: sl(),
+      affectTreasury: sl(),
+      deleteTransaction: sl(),
+    ),
+  );
+  sl.registerFactory(() => CategoriesBloc(useCases: sl()));
+}
+
+class WazlyMinimalApp extends StatelessWidget {
+  final bool hasSeenOnboarding;
+  final bool hasCompletedLocaleSetup;
+
+  const WazlyMinimalApp({
+    super.key,
+    required this.hasSeenOnboarding,
+    required this.hasCompletedLocaleSetup,
+  });
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => di.sl<SettingsBloc>()..add(const LoadSettings()),
+        BlocProvider<DashboardBloc>(
+          create: (context) => sl<DashboardBloc>()..add(LoadDashboard()),
         ),
-        BlocProvider(create: (context) => di.sl<TransactionBloc>()),
-        BlocProvider(create: (context) => di.sl<AnalyticsBloc>()),
-        BlocProvider(create: (context) => di.sl<DebtBloc>()),
-        BlocProvider(create: (context) => di.sl<AccountBloc>()),
-        BlocProvider(
-          create: (context) => di.sl<ProfileBloc>()..add(const LoadProfile()),
+        BlocProvider<PeopleBloc>(
+          create: (context) => sl<PeopleBloc>()..add(const LoadPeople()),
         ),
-        BlocProvider.value(value: di.sl<AuthBloc>()),
+        BlocProvider<PersonActionBloc>(
+          create: (context) => sl<PersonActionBloc>(),
+        ),
+        BlocProvider<TransactionActionBloc>(
+          create: (context) => sl<TransactionActionBloc>(),
+        ),
+        BlocProvider<PersonDetailsBloc>(
+          create: (context) => sl<PersonDetailsBloc>(),
+        ),
+        BlocProvider<CategoriesBloc>(create: (context) => sl<CategoriesBloc>()),
+        BlocProvider<ThemeCubit>(create: (context) => sl<ThemeCubit>()),
+        BlocProvider<SettingsCubit>(create: (context) => sl<SettingsCubit>()),
       ],
-      child: BlocBuilder<SettingsBloc, SettingsState>(
-        builder: (context, state) {
-          return MaterialApp(
-            title: 'Wazly',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.darkTheme,
-            locale: state.locale,
-            localizationsDelegates: [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('en'), Locale('ar')],
-            builder: (context, child) => SecurityLockPage(child: child!),
-            home: const _AuthGate(),
-            routes: {
-              '/welcome': (context) => const WelcomePage(),
-              '/dashboard': (context) => const DashboardPage(),
-              '/history': (context) => const TransactionHistoryPage(),
-              '/accounts': (context) => const AccountsPage(),
-              '/analytics': (context) => const AnalyticsPage(),
-              '/profile': (context) => const ProfilePage(),
-              '/settings': (context) => const SettingsPage(),
+      child: BlocBuilder<SettingsCubit, SettingsState>(
+        builder: (context, settingsState) {
+          return BlocBuilder<ThemeCubit, ThemeState>(
+            builder: (context, themeState) {
+              return MaterialApp(
+                title: 'Wazly V2 Minimal',
+                theme: AppTheme.getTheme(themeState.option),
+                debugShowCheckedModeBanner: false,
+                locale: Locale(settingsState.languageCode),
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: const [Locale('en', ''), Locale('ar', '')],
+                builder: (context, child) {
+                  return AppLockWrapper(child: child!);
+                },
+                home: hasCompletedLocaleSetup
+                    ? (hasSeenOnboarding
+                          ? const AppShell()
+                          : const OnboardingScreen())
+                    : LocaleSetupScreen(hasSeenOnboarding: hasSeenOnboarding),
+              );
             },
           );
-        },
-      ),
-    );
-  }
-}
-
-/// Auth gate widget that decides which screen to show
-class _AuthGate extends StatefulWidget {
-  const _AuthGate();
-
-  @override
-  State<_AuthGate> createState() => _AuthGateState();
-}
-
-class _AuthGateState extends State<_AuthGate> {
-  @override
-  void initState() {
-    super.initState();
-    // Check auth status when widget initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<AuthBloc>().add(const CheckAuthStatus());
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        if (state is AuthAuthenticated) {
-          Navigator.pushReplacementNamed(context, '/dashboard');
-        }
-      },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        builder: (context, state) {
-          if (state is AuthLoading || state is AuthInitial) {
-            return const Scaffold(
-              backgroundColor: AppTheme.backgroundColor,
-              body: Center(
-                child: CircularProgressIndicator(color: AppTheme.incomeColor),
-              ),
-            );
-          }
-
-          if (state is AuthWelcomeRequired) {
-            return const WelcomePage();
-          }
-
-          return const DashboardPage();
         },
       ),
     );

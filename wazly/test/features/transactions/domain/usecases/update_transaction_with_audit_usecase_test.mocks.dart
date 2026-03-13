@@ -10,6 +10,8 @@ import 'package:mockito/mockito.dart' as _i1;
 import 'package:wazly/core/errors/failures.dart' as _i5;
 import 'package:wazly/features/transactions/domain/entities/audit_log_entity.dart'
     as _i7;
+import 'package:wazly/features/transactions/domain/entities/installment_entity.dart'
+    as _i8;
 import 'package:wazly/features/transactions/domain/entities/transaction_entity.dart'
     as _i6;
 import 'package:wazly/features/transactions/domain/repositories/transaction_repository.dart'
@@ -204,4 +206,42 @@ class MockTransactionRepository extends _i1.Mock
               ),
             )),
           ) as _i4.Future<_i2.Either<_i5.Failure, List<_i7.AuditLogEntity>>>);
+
+  @override
+  _i4.Future<_i2.Either<_i5.Failure, List<_i8.InstallmentEntity>>>
+      getInstallmentsForTransaction(String? transactionId) =>
+          (super.noSuchMethod(
+            Invocation.method(
+              #getInstallmentsForTransaction,
+              [transactionId],
+            ),
+            returnValue: _i4.Future<
+                    _i2.Either<_i5.Failure, List<_i8.InstallmentEntity>>>.value(
+                _FakeEither_0<_i5.Failure, List<_i8.InstallmentEntity>>(
+              this,
+              Invocation.method(
+                #getInstallmentsForTransaction,
+                [transactionId],
+              ),
+            )),
+          ) as _i4
+              .Future<_i2.Either<_i5.Failure, List<_i8.InstallmentEntity>>>);
+
+  @override
+  _i4.Future<_i2.Either<_i5.Failure, void>> addInstallment(
+          _i8.InstallmentEntity? installment) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #addInstallment,
+          [installment],
+        ),
+        returnValue: _i4.Future<_i2.Either<_i5.Failure, void>>.value(
+            _FakeEither_0<_i5.Failure, void>(
+          this,
+          Invocation.method(
+            #addInstallment,
+            [installment],
+          ),
+        )),
+      ) as _i4.Future<_i2.Either<_i5.Failure, void>>);
 }
