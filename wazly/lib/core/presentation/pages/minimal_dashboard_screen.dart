@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
 import 'package:wazly/core/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:wazly/core/presentation/bloc/transaction_action/transaction_action_bloc.dart';
 import 'package:wazly/core/presentation/pages/minimal_people_screen.dart';
@@ -15,8 +15,11 @@ import 'package:wazly/core/presentation/pages/theme_screen.dart';
 import 'package:wazly/core/presentation/pages/categories/categories_screen.dart';
 import 'package:wazly/core/presentation/pages/add_transaction_screen.dart';
 import 'package:wazly/core/presentation/pages/security_screen.dart';
+import 'package:wazly/core/presentation/pages/backup_restore_screen.dart';
 import 'package:wazly/core/presentation/pages/about_screen.dart';
 import 'package:wazly/core/presentation/widgets/empty_state_view.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
+import 'package:wazly/core/presentation/widgets/coach_mark_overlay.dart';
 import 'package:wazly/l10n/app_localizations.dart';
 
 class MinimalDashboardScreen extends StatefulWidget {
@@ -29,6 +32,33 @@ class MinimalDashboardScreen extends StatefulWidget {
 class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
   final Set<String> _pendingDeletions = {};
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  final GlobalKey _addTransactionKey = GlobalKey();
+  bool _dataReady = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_dataReady) _tryShowCoachMarks();
+  }
+
+  void _tryShowCoachMarks() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
+      maybeShowCoachMarks(
+        context: context,
+        tourId: 'dashboard',
+        requiredTabIndex: 0,
+        steps: [
+          CoachMarkStep(
+            targetKey: _addTransactionKey,
+            text: l.hintAddTransaction,
+            icon: FluentIcons.add_circle_24_regular,
+          ),
+        ],
+      );
+    });
+  }
 
   String _getGreeting(BuildContext context) {
     final hour = DateTime.now().hour;
@@ -169,23 +199,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
             _DrawerTile(
               icon: FluentIcons.cloud_sync_24_regular,
               label: l.backupAndRestore,
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  l.comingSoon,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: primary),
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l.comingSoon)),
-                );
-              },
+              onTap: () => _navigateFromDrawer(context, const BackupRestoreScreen()),
             ),
 
             const Spacer(),
@@ -276,6 +290,11 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
             }
 
             if (state is DashboardLoaded) {
+              if (!_dataReady) {
+                _dataReady = true;
+                _tryShowCoachMarks();
+              }
+
               final summary = state.summary;
               final treasury = summary.treasury;
               final debts = summary.activeDebts;
@@ -418,7 +437,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                             FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
-                                '${(treasury.balanceInCents / 100).toStringAsFixed(2)} LYD',
+                                '${AppFormatters.formatAmountInCents(treasury.balanceInCents)} ${context.watch<SettingsCubit>().state.currencyCode}',
                                 style: TextStyle(
                                   fontSize: 38,
                                   fontWeight: FontWeight.w800,
@@ -450,6 +469,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => AddTransactionScreen()));
                         },
                         child: Container(
+                          key: _addTransactionKey,
                           width: double.infinity,
                           padding: EdgeInsets.symmetric(vertical: 16),
                           decoration: BoxDecoration(
@@ -489,7 +509,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                             child: StatCard(
                               title: AppLocalizations.of(context)!.income7d,
                               value:
-                                  '+${(totalIn7Days / 100).toStringAsFixed(0)}',
+                                  '+${AppFormatters.formatAmount(totalIn7Days / 100).split('.').first}',
                               icon: FluentIcons.arrow_down_24_regular,
                               iconColor: AppTheme.incomeColor,
                               valueColor: AppTheme.incomeColor,
@@ -500,7 +520,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                             child: StatCard(
                               title: AppLocalizations.of(context)!.expense7d,
                               value:
-                                  '-${(totalOut7Days / 100).toStringAsFixed(0)}',
+                                  '-${AppFormatters.formatAmount(totalOut7Days / 100).split('.').first}',
                               icon: FluentIcons.arrow_up_24_regular,
                               iconColor: AppTheme.debtColor,
                               valueColor: AppTheme.debtColor,
@@ -511,7 +531,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                             child: StatCard(
                               title: AppLocalizations.of(context)!.netToday,
                               value:
-                                  (netMovementToday / 100).toStringAsFixed(0),
+                                  AppFormatters.formatAmount(netMovementToday / 100).split('.').first,
                               icon: FluentIcons.arrow_sort_24_regular,
                               iconColor: Theme.of(context).primaryColor,
                               valueColor: netMovementToday >= 0
@@ -638,7 +658,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                                       ),
                                     ),
                                     Text(
-                                      '+${(highestExposure.netBalanceInCents / 100).toStringAsFixed(0)} LYD',
+                                      '+${AppFormatters.formatAmount(highestExposure.netBalanceInCents / 100).split('.').first} ${context.watch<SettingsCubit>().state.currencyCode}',
                                       style: TextStyle(
                                         color: AppTheme.warningColor,
                                         fontWeight: FontWeight.w800,
@@ -788,7 +808,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                                         ),
                                       ),
                                       Text(
-                                        '$prefix${(d.netBalanceInCents / 100).toStringAsFixed(2)} LYD',
+                                        '$prefix${AppFormatters.formatAmountInCents(d.netBalanceInCents)} ${context.watch<SettingsCubit>().state.currencyCode}',
                                         style: TextStyle(
                                           color: amountColor,
                                           fontWeight: FontWeight.w800,
@@ -947,7 +967,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                                           ),
                                           SizedBox(height: 2),
                                           Text(
-                                            DateFormat('MMM dd, yyyy').format(t.date),
+                                            AppFormatters.formatDate(t.date, 'MMM dd, yyyy'),
                                             style: TextStyle(
                                               color: AppTheme.textSecondary,
                                               fontSize: 12,
@@ -958,7 +978,7 @@ class _MinimalDashboardScreenState extends State<MinimalDashboardScreen> {
                                     ),
                                     // Amount
                                     Text(
-                                      '$prefix${(signedAmount / 100).toStringAsFixed(2)}',
+                                      '$prefix${AppFormatters.formatAmountInCents(signedAmount.abs())}',
                                       style: TextStyle(
                                         color: amountColor,
                                         fontWeight: FontWeight.w800,
@@ -1014,13 +1034,11 @@ class _DrawerTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final VoidCallback onTap;
-  final Widget? trailing;
 
   const _DrawerTile({
     required this.icon,
     required this.label,
     required this.onTap,
-    this.trailing,
   });
 
   @override
@@ -1049,7 +1067,6 @@ class _DrawerTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (trailing != null) trailing!,
               ],
             ),
           ),

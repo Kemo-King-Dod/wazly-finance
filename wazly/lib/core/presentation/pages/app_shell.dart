@@ -6,6 +6,7 @@ import 'package:wazly/core/presentation/pages/minimal_people_screen.dart';
 import 'package:wazly/core/presentation/pages/minimal_analytics_screen.dart';
 import 'package:wazly/core/presentation/pages/minimal_activity_screen.dart';
 import 'package:wazly/core/theme/app_theme.dart';
+import 'package:wazly/core/presentation/widgets/coach_mark_overlay.dart';
 import 'package:wazly/l10n/app_localizations.dart';
 
 class AppShell extends StatefulWidget {
@@ -37,8 +38,10 @@ class _AppShellState extends State<AppShell> {
       _NavTab(FluentIcons.receipt_24_regular, FluentIcons.receipt_24_filled, l.activityTitle),
     ];
 
-    return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _pages),
+    return AppShellScope(
+      currentTab: _currentIndex,
+      child: Scaffold(
+        body: IndexedStack(index: _currentIndex, children: _pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -118,6 +121,7 @@ class _AppShellState extends State<AppShell> {
             ),
           ),
         ),
+      ),
       ),
     );
   }

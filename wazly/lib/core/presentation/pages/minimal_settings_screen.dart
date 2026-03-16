@@ -15,6 +15,7 @@ import 'package:wazly/core/presentation/bloc/people/people_bloc.dart';
 import 'package:wazly/core/data/local/database/app_database.dart';
 import 'package:wazly/core/presentation/widgets/custom_selector_bottom_sheet.dart';
 import 'package:wazly/core/data/local/services/notification_service.dart' as wazly_notif;
+import 'package:wazly/core/services/coach_mark_service.dart';
 import 'package:wazly/main.dart'; // For sl (GetIt)
 
 class MinimalSettingsScreen extends StatefulWidget {
@@ -25,9 +26,6 @@ class MinimalSettingsScreen extends StatefulWidget {
 }
 
 class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
-  bool _enableInstallments = true;
-  bool _darkMode = false;
-
   String? _lastBackupDate;
   int? _lastBackupSize;
   String? _appVersion = '2.0.0 (Minimal)';
@@ -244,9 +242,9 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
   }
 
   void _showLanguagePicker(BuildContext context, SettingsState state) {
-    final _languageItems = const [
-      SelectorItem(label: 'English', value: 'en', leadingIcon: '🇺🇸'),
-      SelectorItem(label: 'العربية (Arabic)', value: 'ar', leadingIcon: '🇸🇦'),
+    final _languageItems = [
+      SelectorItem(label: AppLocalizations.of(context)!.langEnglish, value: 'en', leadingIcon: '🇺🇸'),
+      SelectorItem(label: AppLocalizations.of(context)!.langArabic, value: 'ar', leadingIcon: '🇸🇦'),
     ];
 
     CustomSelectorBottomSheet.show(
@@ -264,7 +262,7 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
   void _showCurrencyPicker(BuildContext context, SettingsState state) {
     final l10n = AppLocalizations.of(context)!;
     final _countryItems = [
-      SelectorItem(label: l10n.countryLibya, value: 'LY', leadingIcon: '🇱🇾', badgeText: 'LYD'),
+      SelectorItem(label: l10n.countryLibya, value: 'LY', leadingIcon: '🇱🇾', badgeText: l10n.currencySymbol),
       SelectorItem(label: l10n.countryEgypt, value: 'EG', leadingIcon: '🇪🇬', badgeText: 'EGP'),
       SelectorItem(label: l10n.countryUAE, value: 'AE', leadingIcon: '🇦🇪', badgeText: 'AED'),
       SelectorItem(label: l10n.countrySaudiArabia, value: 'SA', leadingIcon: '🇸🇦', badgeText: 'SAR'),
@@ -391,27 +389,38 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
                         );
                       },
                     ),
+                    const Divider(height: 1),
                     _buildSettingsRow(
-                      icon: FluentIcons.text_sort_ascending_24_regular,
-                      iconBg: AppTheme.warningColor.withValues(alpha: 0.1),
-                      iconColor: AppTheme.warningColor,
-                      title: AppLocalizations.of(context)!.enableInstallments,
-                      trailing: Switch(
-                        value: _enableInstallments,
-                        activeThumbColor: Theme.of(context).primaryColor,
-                        onChanged: (val) => setState(() => _enableInstallments = val),
+                      icon: FluentIcons.bug_24_regular,
+                      iconBg: Colors.red.withValues(alpha: 0.1),
+                      iconColor: Colors.red,
+                      title: AppLocalizations.of(context)!.notificationTestMaturity,
+                      trailing: const Icon(
+                        FluentIcons.chevron_right_24_regular,
+                        color: AppTheme.textSecondary,
+                        size: 22,
                       ),
-                    ),
-                    _buildSettingsRow(
-                      icon: FluentIcons.dark_theme_24_regular,
-                      iconBg: Color(0xFF334155).withValues(alpha: 0.1),
-                      iconColor: Color(0xFF334155),
-                      title: AppLocalizations.of(context)!.darkMode,
-                      trailing: Switch(
-                        value: _darkMode,
-                        activeThumbColor: Theme.of(context).primaryColor,
-                        onChanged: (val) => setState(() => _darkMode = val),
-                      ),
+                      onTap: () async {
+                        final service = wazly_notif.NotificationService();
+                        final log = await service.scheduleTestIn1Minute();
+                        if (mounted) {
+                          showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text(AppLocalizations.of(context)!.testScheduleResult),
+                              content: SingleChildScrollView(
+                                child: SelectableText(log, style: const TextStyle(fontSize: 12, fontFamily: 'monospace')),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx),
+                                  child: Text(AppLocalizations.of(context)!.ok),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
                     ),
                       ],
                     ),
@@ -555,131 +564,12 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
 
                       SizedBox(height: 8),
 
-                      // ── Test notification buttons ──────────────
+                      // ── Battery optimization guidance ──────────────
                       Container(
                         decoration: AppTheme.sectionCardDecoration,
                         clipBehavior: Clip.antiAlias,
                         child: Column(
                           children: [
-                            // Instant test
-                            InkWell(
-                              onTap: () async {
-                                await wazly_notif.NotificationService()
-                                    .sendTestNotification();
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(AppLocalizations.of(context)!.testNotificationSent),
-                                    backgroundColor: Theme.of(context).primaryColor,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 36, height: 36,
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.incomeColor.withValues(alpha: 0.12),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(FluentIcons.send_24_regular, color: AppTheme.incomeColor, size: 18),
-                                    ),
-                                    SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(AppLocalizations.of(context)!.testNotification,
-                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                          Text(AppLocalizations.of(context)!.testNotificationSubtitle,
-                                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(FluentIcons.chevron_right_24_regular, color: AppTheme.textSecondary, size: 20),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            Divider(height: 1, color: AppTheme.borderLight),
-
-                            // 1-minute scheduled test (debug)
-                            InkWell(
-                              onTap: () async {
-                                final debugInfo = await wazly_notif
-                                    .NotificationService()
-                                    .scheduleTestIn1Minute();
-                                if (!mounted) return;
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => AlertDialog(
-                                    title: Row(
-                                      children: [
-                                        Icon(FluentIcons.bug_24_regular,
-                                            color: AppTheme.debtColor, size: 22),
-                                        SizedBox(width: 8),
-                                        Text(AppLocalizations.of(context)!.scheduleDebugTitle,
-                                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-                                      ],
-                                    ),
-                                    content: SingleChildScrollView(
-                                      child: SelectableText(
-                                        debugInfo,
-                                        style: TextStyle(
-                                          fontFamily: 'monospace',
-                                          fontSize: 12,
-                                          color: AppTheme.textPrimary,
-                                          height: 1.6,
-                                        ),
-                                      ),
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: Text(AppLocalizations.of(context)!.done),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                child: Row(
-                                  children: [
-                                    Container(
-                                      width: 36, height: 36,
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.debtColor.withValues(alpha: 0.10),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      child: Icon(FluentIcons.timer_24_regular,
-                                          color: AppTheme.debtColor, size: 18),
-                                    ),
-                                    SizedBox(width: 14),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(AppLocalizations.of(context)!.scheduledTestTitle,
-                                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                          Text(AppLocalizations.of(context)!.scheduledTestSubtitle,
-                                              style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
-                                        ],
-                                      ),
-                                    ),
-                                    Icon(FluentIcons.chevron_right_24_regular, color: AppTheme.textSecondary, size: 20),
-                                  ],
-                                ),
-                              ),
-                            ),
-
-                            Divider(height: 1, color: AppTheme.borderLight),
-
-                            // MIUI / Battery optimization guidance
                             InkWell(
                               onTap: () {
                                 showDialog(
@@ -702,10 +592,10 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
                                           Text(AppLocalizations.of(context)!.miuiInstructions,
                                               style: TextStyle(fontSize: 13, color: AppTheme.textSecondary)),
                                           SizedBox(height: 12),
-                                          _miuiStep('1', 'الإعدادات ← التطبيقات ← Wazly ← توفير البطارية\nاختر: بدون قيود'),
-                                          _miuiStep('2', 'الإعدادات ← البطارية والأداء ← التشغيل التلقائي\nفعّل التشغيل التلقائي لـ Wazly'),
-                                          _miuiStep('3', 'الإعدادات ← التطبيقات ← Wazly ← الإشعارات\nتأكد أن جميع أنواع الإشعارات مفعّلة'),
-                                          _miuiStep('4', 'الإعدادات ← التطبيقات ← Wazly ← الأذونات\nفعّل: التنبيهات أو الأذونات الأخرى المتعلقة بالمنبه'),
+                                          _miuiStep('1', AppLocalizations.of(context)!.miuiStep1),
+                                          _miuiStep('2', AppLocalizations.of(context)!.miuiStep2),
+                                          _miuiStep('3', AppLocalizations.of(context)!.miuiStep3),
+                                          _miuiStep('4', AppLocalizations.of(context)!.miuiStep4),
                                         ],
                                       ),
                                     ),
@@ -903,6 +793,36 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
                   ],
                 ),
               ),
+
+              // ═══════════════ GUIDED HINTS ═══════════════
+              const SizedBox(height: 4),
+              Container(
+                decoration: AppTheme.sectionCardDecoration,
+                clipBehavior: Clip.antiAlias,
+                child: _buildSettingsRow(
+                  icon: FluentIcons.lightbulb_24_regular,
+                  iconBg: AppTheme.warningColor.withValues(alpha: 0.1),
+                  iconColor: AppTheme.warningColor,
+                  title: AppLocalizations.of(context)!.resetGuidedHints,
+                  trailing: Icon(
+                    FluentIcons.arrow_reset_24_regular,
+                    color: AppTheme.textSecondary,
+                    size: 22,
+                  ),
+                  onTap: () async {
+                    await CoachMarkService.resetAllTours();
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(AppLocalizations.of(context)!.hintsResetDone),
+                          backgroundColor: AppTheme.incomeColor,
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
 
               // ═══════════════ DANGER SECTION ═══════════════
               _buildSectionTitle(AppLocalizations.of(context)!.dangerZone),
@@ -1130,11 +1050,17 @@ class _MinimalSettingsScreenState extends State<MinimalSettingsScreen> {
     required void Function(int day) onToggle,
   }) {
     // Short day labels: Mon=1 … Sun=7
-    final isAr =
-        AppLocalizations.of(context)!.localeName == 'ar';
-    final labels = isAr
-        ? ['', 'إث', 'ثل', 'أر', 'خم', 'جم', 'سب', 'أح']
-        : ['', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+    final l = AppLocalizations.of(context)!;
+    final labels = [
+      '', 
+      l.mondayAbbr, 
+      l.tuesdayAbbr, 
+      l.wednesdayAbbr, 
+      l.thursdayAbbr, 
+      l.fridayAbbr, 
+      l.saturdayAbbr, 
+      l.sundayAbbr
+    ];
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),

@@ -1,5 +1,6 @@
 {
   "appTitle": "وازلي",
+  "statusLabel": "الحالة",
   "dashboard": "لوحة التحكم",
   "history": "السجل",
   "accounts": "الحسابات والديون",
@@ -462,6 +463,104 @@
     "placeholders": { "date": { "type": "String" } }
   },
   "tapToScheduleReminder": "اضغط لجدولة تذكير",
-  "remindersSection": "التذكيرات"
+  "remindersSection": "التذكيرات",
+  "noBackupYet": "لم يتم إنشاء نسخة احتياطية بعد",
+  "exportDataSubtitle": "احفظ بياناتك كملف نسخة احتياطية مشفّر",
+  "importBackupSubtitle": "استعد البيانات من ملف نسخة احتياطية سابق",
+  "resetAllDataSubtitle": "حذف جميع البيانات من التطبيق نهائياً",
+  "customDate": "تاريخ مخصص",
+  "customTime": "وقت مخصص",
+  "selectDate": "اختر التاريخ",
+  "selectTime": "اختر الوقت",
+  "whatsappReminderOwes": "مرحباً {name}، مجرد تذكير ودي بخصوص المبلغ المتبقي {amount} د.ل.",
+  "@whatsappReminderOwes": {
+    "placeholders": { "name": { "type": "String" }, "amount": { "type": "String" } }
+  },
+  "whatsappReminderYouOwe": "مرحباً {name}، أتواصل معك بخصوص المبلغ المستحق عليّ وقدره {amount} د.ل.",
+  "@whatsappReminderYouOwe": {
+    "placeholders": { "name": { "type": "String" }, "amount": { "type": "String" } }
+  },
+  "whatsappReminderSettled": "مرحباً {name}، أهلاً! حسابنا مسوّى.",
+  "@whatsappReminderSettled": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "todayFilter": "اليوم",
+  "thisWeekFilter": "هذا الأسبوع",
+  "thisMonthFilter": "هذا الشهر",
+  "thisYearFilter": "هذه السنة",
+  "customRangeFilter": "مخصص",
+  "trendChart": "الاتجاه",
+  "fromDate": "من",
+  "toDate": "إلى",
+  "rangeLabel": "{from} – {to}",
+  "@rangeLabel": {
+    "placeholders": { "from": { "type": "String" }, "to": { "type": "String" } }
+  },
+  "newTransaction": "معاملة جديدة",
+  "recordIncomeExpense": "سجّل دخل أو مصروف",
+  "saveTransaction": "حفظ المعاملة",
+  "addNewCategoryOption": "إضافة فئة جديدة",
+  "noCategoriesYet": "لا توجد فئات بعد",
+  "tapToAddCategory": "اضغط + لإنشاء واحدة",
+  "gotIt": "فهمت",
+  "hintAddTransaction": "اضغط هنا لتسجيل معاملة دخل أو مصروف جديدة",
+  "hintAddPerson": "أضف شخصاً جديداً لتتبع الديون والمدفوعات معه",
+  "hintAddDebt": "سجّل ديناً جديداً لهذا الشخص",
+  "hintAddPayment": "سجّل دفعة سداد من أو إلى هذا الشخص",
+  "hintShareReport": "شارك تقريراً مفصلاً بالمعاملات كملف PDF",
+  "hintSetReminder": "اضبط تذكيراً لمتابعة هذا الدين",
+  "resetGuidedHints": "إعادة تعيين التلميحات",
+  "resetGuidedHintsSubtitle": "عرض التلميحات الإرشادية مجدداً عند الزيارة القادمة",
+  "hintsResetDone": "تم إعادة تعيين التلميحات الإرشادية",
+  "filterAll": "الكل",
+  "filterOwesMe": "مدين لي",
+  "filterIOwe": "أنا مدين",
+  "filterSettled": "مسوّى",
+  "sortHighestBalance": "أعلى رصيد",
+  "sortRecentActivity": "أحدث نشاط",
+  "sortAlphabetical": "أبجدي",
+  "miuiStep1": "الإعدادات ← التطبيقات ← Wazly ← توفير البطارية\nاختر: بدون قيود",
+  "miuiStep2": "الإعدادات ← البطارية والأداء ← التشغيل التلقائي\nفعّل التشغيل التلقائي لـ Wazly",
+  "miuiStep3": "الإعدادات ← التطبيقات ← Wazly ← الإشعارات\nتأكد أن جميع أنواع الإشعارات مفعّلة",
+  "miuiStep4": "الإعدادات ← التطبيقات ← Wazly ← الأذونات\nفعّل: التنبيهات أو الأذونات الأخرى المتعلقة بالمنبه",
+  "langEnglish": "الإنجليزية (English)",
+  "langArabic": "العربية (Arabic)",
+  "currencySymbol": "LYD",
+  "preset3d": "3 أيام",
+  "preset7d": "7 أيام",
+  "preset14d": "14 يوم",
+  "presetCustom": "مخصص",
+  "deleteTxWarning": "لا يمكن التراجع عن هذا الإجراء. سيؤثر على الأرصدة فوراً.",
+  "transactionTitle": "معاملة",
+  "addedFundsTitle": "تمت إضافة أموال",
+  "removedFundsTitle": "تم سحب أموال",
+  "exportPdf": "تصدير كـ PDF",
+  "exportExcel": "تصدير كـ Excel",
+  "exportDialogTitle": "استخراج النشاط",
+  "exportDialogDescription": "سيتم استخراج نتائج الفلترة الحالية على هيئة {format} حسب ما أردت.",
+  "@exportDialogDescription": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "hintExportPdf": "استخرج النشاط المفلتر حالياً كملف PDF",
+  "hintExportExcel": "استخرج النشاط المفلتر حالياً كملف Excel",
+  "continueExport": "استمر",
+  "notificationTestMaturity": "اختبار الإشعارات (للمطور)",
+  "testScheduleResult": "نتيجة جدولة الاختبار",
+  "ok": "حسناً",
+  "mondayAbbr": "إث",
+  "tuesdayAbbr": "ثل",
+  "wednesdayAbbr": "أر",
+  "thursdayAbbr": "خم",
+  "fridayAbbr": "جم",
+  "saturdayAbbr": "سب",
+  "sundayAbbr": "أح",
+  "arabicLanguageLabel": "العربية (Arabic)",
+  "enableExactReminders": "تفعيل التذكيرات الدقيقة",
+  "exactRemindersExplanation": "للحصول على تذكيرات في الوقت المحدد تماماً، افتح إعدادات الجهاز وفعّل \"الإنذارات والتذكيرات\" لتطبيق Wazly.\n\nيمكن حفظ التذكير الآن لكن قد يصل متأخراً قليلاً.",
+  "later": "لاحقاً",
+  "openSettings": "فتح الإعدادات"
 }
-

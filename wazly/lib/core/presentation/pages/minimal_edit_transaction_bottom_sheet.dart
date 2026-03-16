@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
 import 'package:wazly/core/domain/entities/transaction.dart';
 import 'package:wazly/core/domain/entities/transaction_enums.dart';
 import 'package:wazly/core/presentation/bloc/people/people_bloc.dart';
@@ -7,7 +9,9 @@ import 'package:wazly/core/presentation/bloc/transaction_action/transaction_acti
 import 'package:wazly/core/domain/usecases/add_debt.dart';
 import 'package:wazly/core/domain/usecases/add_payment.dart';
 import 'package:wazly/core/domain/usecases/affect_treasury.dart';
+import 'package:wazly/core/theme/app_theme.dart';
 import 'package:wazly/l10n/app_localizations.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
 
 class MinimalEditTransactionBottomSheet extends StatefulWidget {
   final Transaction transaction;
@@ -39,7 +43,7 @@ class _MinimalEditTransactionBottomSheetState
     super.initState();
     _selectedPersonId = widget.transaction.personId;
     _amountController = TextEditingController(
-      text: (widget.transaction.amountInCents / 100).toStringAsFixed(2),
+      text: AppFormatters.formatAmount(widget.transaction.amountInCents / 100),
     );
     _descriptionController = TextEditingController(
       text: widget.transaction.description,
@@ -188,22 +192,18 @@ class _MinimalEditTransactionBottomSheetState
                 },
               ),
             if (!isPersonLinked)
-              DropdownButtonFormField<TransactionType>(
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.typeLabel),
-                initialValue: _treasuryType,
-                items: [
-                  DropdownMenuItem(
-                    value: TransactionType.treasuryIn,
-                    child: Text(AppLocalizations.of(context)!.addToTreasury),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    child: Text(
+                      AppLocalizations.of(context)!.typeLabel,
+                      style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                    ),
                   ),
-                  DropdownMenuItem(
-                    value: TransactionType.treasuryOut,
-                    child: Text(AppLocalizations.of(context)!.removeFromTreasury),
-                  ),
+                  _buildTreasuryToggle(),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _treasuryType = val);
-                },
               ),
             const SizedBox(height: 16),
             TextField(
@@ -211,7 +211,7 @@ class _MinimalEditTransactionBottomSheetState
               autofocus: true,
               decoration: InputDecoration(
                 labelText: AppLocalizations.of(context)!.amountLabel,
-                suffixText: 'LYD',
+                suffixText: context.watch<SettingsCubit>().state.currencyCode,
               ),
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
@@ -226,22 +226,18 @@ class _MinimalEditTransactionBottomSheetState
             ),
             const SizedBox(height: 16),
             if (isPersonLinked)
-              DropdownButtonFormField<DebtDirection>(
-                decoration: InputDecoration(labelText: AppLocalizations.of(context)!.directionLabel),
-                initialValue: _direction,
-                items: [
-                  DropdownMenuItem(
-                    value: DebtDirection.theyOweMe,
-                    child: Text(AppLocalizations.of(context)!.theyOweMeGive),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                    child: Text(
+                      AppLocalizations.of(context)!.directionLabel,
+                      style: const TextStyle(fontSize: 13, color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+                    ),
                   ),
-                  DropdownMenuItem(
-                    value: DebtDirection.iOweThem,
-                    child: Text(AppLocalizations.of(context)!.iOweThemReceive),
-                  ),
+                  _buildDirectionToggle(),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _direction = val);
-                },
               ),
             const SizedBox(height: 24),
             BlocBuilder<TransactionActionBloc, TransactionActionState>(
@@ -299,6 +295,110 @@ class _MinimalEditTransactionBottomSheetState
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+  Widget _buildTreasuryToggle() {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.lightSurfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildTreasurySegment(l.addToTreasury, TransactionType.treasuryIn),
+          _buildTreasurySegment(l.removeFromTreasury, TransactionType.treasuryOut),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTreasurySegment(String title, TransactionType type) {
+    final isSelected = _treasuryType == type;
+    final activeColor = type == TransactionType.treasuryIn 
+        ? AppTheme.incomeColor 
+        : AppTheme.debtColor;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_treasuryType != type) {
+            setState(() {
+              _treasuryType = type;
+            });
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? activeColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectionToggle() {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.lightSurfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildDirectionSegment(l.theyOweMeGive, DebtDirection.theyOweMe),
+          _buildDirectionSegment(l.iOweThemReceive, DebtDirection.iOweThem),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDirectionSegment(String title, DebtDirection direction) {
+    final isSelected = _direction == direction;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_direction != direction) {
+            setState(() {
+              _direction = direction;
+            });
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+            ),
+          ),
         ),
       ),
     );

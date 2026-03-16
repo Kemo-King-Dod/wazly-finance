@@ -12,6 +12,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appTitle => 'وازلي';
 
   @override
+  String get statusLabel => 'الحالة';
+
+  @override
   String get dashboard => 'لوحة التحكم';
 
   @override
@@ -231,10 +234,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get filterOwedToMe => 'ديون لي';
 
   @override
-  String get filterIOwe => 'ديون علي';
+  String get filterIOwe => 'أنا مدين';
 
   @override
-  String get filterSettled => 'مسددة';
+  String get filterSettled => 'مسوّى';
 
   @override
   String get sortByAmount => 'حسب المبلغ';
@@ -1192,7 +1195,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get noCategoriesYet => 'لا توجد فئات بعد';
 
   @override
-  String get tapToAddCategory => 'اضغط + لإضافة أول فئة';
+  String get tapToAddCategory => 'اضغط + لإنشاء واحدة';
 
   @override
   String get systemBadge => 'نظام';
@@ -1269,4 +1272,246 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get remindersSection => 'التذكيرات';
+
+  @override
+  String get noBackupYet => 'لم يتم إنشاء نسخة احتياطية بعد';
+
+  @override
+  String get exportDataSubtitle => 'احفظ بياناتك كملف نسخة احتياطية مشفّر';
+
+  @override
+  String get importBackupSubtitle => 'استعد البيانات من ملف نسخة احتياطية سابق';
+
+  @override
+  String get resetAllDataSubtitle => 'حذف جميع البيانات من التطبيق نهائياً';
+
+  @override
+  String get customDate => 'تاريخ مخصص';
+
+  @override
+  String get customTime => 'وقت مخصص';
+
+  @override
+  String get selectDate => 'اختر التاريخ';
+
+  @override
+  String get selectTime => 'اختر الوقت';
+
+  @override
+  String whatsappReminderOwes(String name, String amount) {
+    return 'مرحباً $name، مجرد تذكير ودي بخصوص المبلغ المتبقي $amount د.ل.';
+  }
+
+  @override
+  String whatsappReminderYouOwe(String name, String amount) {
+    return 'مرحباً $name، أتواصل معك بخصوص المبلغ المستحق عليّ وقدره $amount د.ل.';
+  }
+
+  @override
+  String whatsappReminderSettled(String name) {
+    return 'مرحباً $name، أهلاً! حسابنا مسوّى.';
+  }
+
+  @override
+  String get todayFilter => 'اليوم';
+
+  @override
+  String get thisWeekFilter => 'هذا الأسبوع';
+
+  @override
+  String get thisMonthFilter => 'هذا الشهر';
+
+  @override
+  String get thisYearFilter => 'هذه السنة';
+
+  @override
+  String get customRangeFilter => 'مخصص';
+
+  @override
+  String get trendChart => 'الاتجاه';
+
+  @override
+  String get fromDate => 'من';
+
+  @override
+  String get toDate => 'إلى';
+
+  @override
+  String rangeLabel(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get newTransaction => 'معاملة جديدة';
+
+  @override
+  String get recordIncomeExpense => 'سجّل دخل أو مصروف';
+
+  @override
+  String get saveTransaction => 'حفظ المعاملة';
+
+  @override
+  String get addNewCategoryOption => 'إضافة فئة جديدة';
+
+  @override
+  String get gotIt => 'فهمت';
+
+  @override
+  String get hintAddTransaction => 'اضغط هنا لتسجيل معاملة دخل أو مصروف جديدة';
+
+  @override
+  String get hintAddPerson => 'أضف شخصاً جديداً لتتبع الديون والمدفوعات معه';
+
+  @override
+  String get hintAddDebt => 'سجّل ديناً جديداً لهذا الشخص';
+
+  @override
+  String get hintAddPayment => 'سجّل دفعة سداد من أو إلى هذا الشخص';
+
+  @override
+  String get hintShareReport => 'شارك تقريراً مفصلاً بالمعاملات كملف PDF';
+
+  @override
+  String get hintSetReminder => 'اضبط تذكيراً لمتابعة هذا الدين';
+
+  @override
+  String get resetGuidedHints => 'إعادة تعيين التلميحات';
+
+  @override
+  String get resetGuidedHintsSubtitle =>
+      'عرض التلميحات الإرشادية مجدداً عند الزيارة القادمة';
+
+  @override
+  String get hintsResetDone => 'تم إعادة تعيين التلميحات الإرشادية';
+
+  @override
+  String get filterOwesMe => 'مدين لي';
+
+  @override
+  String get sortHighestBalance => 'أعلى رصيد';
+
+  @override
+  String get sortRecentActivity => 'أحدث نشاط';
+
+  @override
+  String get sortAlphabetical => 'أبجدي';
+
+  @override
+  String get miuiStep1 =>
+      'الإعدادات ← التطبيقات ← Wazly ← توفير البطارية\nاختر: بدون قيود';
+
+  @override
+  String get miuiStep2 =>
+      'الإعدادات ← البطارية والأداء ← التشغيل التلقائي\nفعّل التشغيل التلقائي لـ Wazly';
+
+  @override
+  String get miuiStep3 =>
+      'الإعدادات ← التطبيقات ← Wazly ← الإشعارات\nتأكد أن جميع أنواع الإشعارات مفعّلة';
+
+  @override
+  String get miuiStep4 =>
+      'الإعدادات ← التطبيقات ← Wazly ← الأذونات\nفعّل: التنبيهات أو الأذونات الأخرى المتعلقة بالمنبه';
+
+  @override
+  String get langEnglish => 'الإنجليزية (English)';
+
+  @override
+  String get langArabic => 'العربية (Arabic)';
+
+  @override
+  String get currencySymbol => 'LYD';
+
+  @override
+  String get preset3d => '3 أيام';
+
+  @override
+  String get preset7d => '7 أيام';
+
+  @override
+  String get preset14d => '14 يوم';
+
+  @override
+  String get presetCustom => 'مخصص';
+
+  @override
+  String get deleteTxWarning =>
+      'لا يمكن التراجع عن هذا الإجراء. سيؤثر على الأرصدة فوراً.';
+
+  @override
+  String get transactionTitle => 'معاملة';
+
+  @override
+  String get addedFundsTitle => 'تمت إضافة أموال';
+
+  @override
+  String get removedFundsTitle => 'تم سحب أموال';
+
+  @override
+  String get exportPdf => 'تصدير كـ PDF';
+
+  @override
+  String get exportExcel => 'تصدير كـ Excel';
+
+  @override
+  String get exportDialogTitle => 'استخراج النشاط';
+
+  @override
+  String exportDialogDescription(String format) {
+    return 'سيتم استخراج نتائج الفلترة الحالية على هيئة $format حسب ما أردت.';
+  }
+
+  @override
+  String get hintExportPdf => 'استخرج النشاط المفلتر حالياً كملف PDF';
+
+  @override
+  String get hintExportExcel => 'استخرج النشاط المفلتر حالياً كملف Excel';
+
+  @override
+  String get continueExport => 'استمر';
+
+  @override
+  String get notificationTestMaturity => 'اختبار الإشعارات (للمطور)';
+
+  @override
+  String get testScheduleResult => 'نتيجة جدولة الاختبار';
+
+  @override
+  String get ok => 'حسناً';
+
+  @override
+  String get mondayAbbr => 'إث';
+
+  @override
+  String get tuesdayAbbr => 'ثل';
+
+  @override
+  String get wednesdayAbbr => 'أر';
+
+  @override
+  String get thursdayAbbr => 'خم';
+
+  @override
+  String get fridayAbbr => 'جم';
+
+  @override
+  String get saturdayAbbr => 'سب';
+
+  @override
+  String get sundayAbbr => 'أح';
+
+  @override
+  String get arabicLanguageLabel => 'العربية (Arabic)';
+
+  @override
+  String get enableExactReminders => 'تفعيل التذكيرات الدقيقة';
+
+  @override
+  String get exactRemindersExplanation =>
+      'للحصول على تذكيرات في الوقت المحدد تماماً، افتح إعدادات الجهاز وفعّل \"الإنذارات والتذكيرات\" لتطبيق Wazly.\n\nيمكن حفظ التذكير الآن لكن قد يصل متأخراً قليلاً.';
+
+  @override
+  String get later => 'لاحقاً';
+
+  @override
+  String get openSettings => 'فتح الإعدادات';
 }

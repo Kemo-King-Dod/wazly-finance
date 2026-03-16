@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
 import 'package:wazly/core/domain/entities/transaction.dart';
 import 'package:wazly/core/domain/entities/transaction_enums.dart';
 import 'package:wazly/core/presentation/bloc/dashboard/dashboard_bloc.dart';
 import 'package:wazly/core/presentation/bloc/people/people_bloc.dart';
 import 'package:wazly/core/presentation/bloc/transaction_action/transaction_action_bloc.dart';
 import 'package:wazly/core/theme/app_theme.dart';
-import 'package:intl/intl.dart';
 import 'package:wazly/core/presentation/pages/minimal_transaction_details_screen.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
+import 'package:wazly/core/presentation/pages/add_transaction_screen.dart';
+import 'package:wazly/core/domain/entities/person.dart';
+import 'package:wazly/core/utils/pdf_generator.dart';
+import 'package:wazly/core/utils/excel_generator.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:wazly/core/presentation/widgets/coach_mark_overlay.dart';
 import 'package:wazly/l10n/app_localizations.dart';
 import 'package:wazly/core/presentation/widgets/empty_state_view.dart';
-import 'package:wazly/core/presentation/pages/add_transaction_screen.dart';
 
 enum ActivityFilter { all, debts, payments, treasury }
 
@@ -47,6 +53,47 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
   ActivityFilter _lastFilter = ActivityFilter.all;
   Set<String> _lastPendingDeletions = {};
   List<Transaction>? _memoizedTxs;
+
+  final GlobalKey _exportPdfKey = GlobalKey();
+  final GlobalKey _exportExcelKey = GlobalKey();
+  bool _coachChecked = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _tryShowCoachMarks();
+  }
+
+  void _tryShowCoachMarks() {
+    if (_coachChecked) return;
+    
+    // Check if we are in the active tab
+    final currentTab = AppShellScope.of(context);
+    if (currentTab != 3) return;
+
+    _coachChecked = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final l = AppLocalizations.of(context)!;
+      maybeShowCoachMarks(
+        context: context,
+        tourId: 'activity_screen',
+        requiredTabIndex: 3,
+        steps: [
+          CoachMarkStep(
+            targetKey: _exportPdfKey,
+            text: l.hintExportPdf,
+            icon: FluentIcons.document_pdf_24_regular,
+          ),
+          CoachMarkStep(
+            targetKey: _exportExcelKey,
+            text: l.hintExportExcel,
+            icon: FluentIcons.document_table_24_regular,
+          ),
+        ],
+      );
+    });
+  }
 
   @override
   void dispose() {
@@ -89,6 +136,33 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
                           ),
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 12),
+
+            // ═══════════ EXPORT BUTTONS ═══════════
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _SoftExportButton(
+                      key: _exportPdfKey,
+                      icon: FluentIcons.document_pdf_24_regular,
+                      label: AppLocalizations.of(context)!.exportPdf,
+                      onTap: () => _showExportDialog('PDF'),
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: _SoftExportButton(
+                      key: _exportExcelKey,
+                      icon: FluentIcons.document_table_24_regular,
+                      label: AppLocalizations.of(context)!.exportExcel,
+                      onTap: () => _showExportDialog('Excel'),
                     ),
                   ),
                 ],
@@ -227,7 +301,7 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
                                       .toLowerCase()
                                       .contains(searchQuery)) return true;
                                   final amountStr =
-                                      (t.amountInCents / 100).toStringAsFixed(2);
+                                      AppFormatters.formatAmountInCents(t.amountInCents);
                                   if (amountStr.contains(searchQuery)) return true;
                                   if (t.personId != null) {
                                     final personIt = peopleState.fullList
@@ -422,7 +496,7 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
                           overflow: TextOverflow.ellipsis),
                       SizedBox(height: 3),
                       Text(
-                          DateFormat('MMM dd • h:mm a').format(t.date),
+                          AppFormatters.formatDate(t.date, 'MMM dd • h:mm a'),
                           style: TextStyle(
                               fontSize: 12,
                               color: AppTheme.textSecondary)),
@@ -430,7 +504,7 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
                   ),
                 ),
                 Text(
-                  '$prefix${(t.amountInCents / 100).toStringAsFixed(2)} LYD',
+                  '$prefix${AppFormatters.formatAmountInCents(t.amountInCents)} ${context.watch<SettingsCubit>().state.currencyCode}',
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w800,
@@ -442,6 +516,182 @@ class _MinimalActivityScreenState extends State<MinimalActivityScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showExportDialog(String format) {
+    showDialog(
+      context: context,
+      builder: (context) => _ExportExplanationDialog(
+        format: format,
+        onConfirm: () {
+          Navigator.pop(context);
+          _handleExport(format);
+        },
+      ),
+    );
+  }
+
+  Future<void> _handleExport(String format) async {
+    if (_memoizedTxs == null) return;
+
+    final l = AppLocalizations.of(context)!;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l.generatingReport), duration: Duration(seconds: 1)),
+    );
+
+    try {
+      String filePath;
+      // Get all people for the generator
+      final peopleState = context.read<PeopleBloc>().state;
+      final List<Person> people = (peopleState is PeopleLoaded) ? peopleState.fullList.map((p) => p.person).toList() : [];
+
+      if (format == 'PDF') {
+        filePath = await PdfGenerator.generateActivityReport(context, _memoizedTxs!, people, context.read<SettingsCubit>().state.currencyCode);
+      } else {
+        filePath = await ExcelGenerator.generateActivityExcel(context, _memoizedTxs!, people, context.read<SettingsCubit>().state.currencyCode);
+      }
+
+      if (!mounted) return;
+      await Share.shareXFiles([XFile(filePath)], text: 'Wazly Export ($format)');
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('${l.failedToGenerateReport}: $e')),
+      );
+    }
+  }
+}
+
+class _SoftExportButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _SoftExportButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).primaryColor;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: primary.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: primary.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: primary, size: 18),
+            SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: primary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExportExplanationDialog extends StatelessWidget {
+  final String format;
+  final VoidCallback onConfirm;
+
+  const _ExportExplanationDialog({
+    required this.format,
+    required this.onConfirm,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context)!;
+    final primary = Theme.of(context).primaryColor;
+
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                format == 'PDF' ? FluentIcons.document_pdf_24_regular : FluentIcons.document_table_24_regular,
+                color: primary,
+                size: 32,
+              ),
+            ),
+            SizedBox(height: 20),
+            Text(
+              l.exportDialogTitle,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            SizedBox(height: 12),
+            Text(
+              l.exportDialogDescription(format),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 14,
+                color: AppTheme.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      l.cancel,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: onConfirm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primary,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(l.continueExport),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

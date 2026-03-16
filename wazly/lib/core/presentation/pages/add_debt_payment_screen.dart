@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:wazly/l10n/app_localizations.dart';
-import 'package:wazly/core/presentation/bloc/transaction_action/transaction_action_bloc.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
+import 'package:wazly/core/domain/entities/person.dart';
 import 'package:wazly/core/domain/entities/transaction_enums.dart';
+import 'package:wazly/core/presentation/bloc/transaction_action/transaction_action_bloc.dart';
+import 'package:wazly/core/theme/app_theme.dart';
+import 'package:wazly/l10n/app_localizations.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:wazly/core/data/local/services/notification_service.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
 import 'package:wazly/core/domain/usecases/add_debt.dart';
 import 'package:wazly/core/domain/usecases/add_payment.dart';
-import 'package:wazly/core/theme/app_theme.dart';
-import 'package:wazly/core/domain/entities/person.dart';
-import 'package:wazly/core/data/local/services/notification_service.dart';
 
 enum DebtPaymentMode { debt, payment }
 
@@ -310,7 +312,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                             fontWeight: FontWeight.w400,
                           ),
                           border: InputBorder.none,
-                          suffixText: 'LYD',
+                          suffixText: context.watch<SettingsCubit>().state.currencyCode,
                           suffixStyle: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -323,61 +325,8 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                     ),
                     SizedBox(height: 12),
 
-                    // ── Direction Card ──
-                    _buildSectionCard(
-                      icon: FluentIcons.arrow_swap_24_regular,
-                      iconColor: Color(0xFF3B82F6),
-                      child: DropdownButtonFormField<DebtDirection>(
-                        decoration: InputDecoration(
-                          labelText: AppLocalizations.of(context)!.direction,
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                        isExpanded: true,
-                        initialValue: _direction,
-                        icon: Icon(FluentIcons.chevron_down_24_regular),
-                        items: _mode == DebtPaymentMode.debt
-                            ? [
-                                DropdownMenuItem(
-                                  value: DebtDirection.theyOweMe,
-                                  child: Text(
-                                      AppLocalizations.of(context)!.theyOweMe,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                                DropdownMenuItem(
-                                  value: DebtDirection.iOweThem,
-                                  child: Text(
-                                      AppLocalizations.of(context)!.iOweThem,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ]
-                            : [
-                                DropdownMenuItem(
-                                  value: DebtDirection.theyOweMe,
-                                  child: Text(
-                                      AppLocalizations.of(context)!.theyPaidMe,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                                DropdownMenuItem(
-                                  value: DebtDirection.iOweThem,
-                                  child: Text(
-                                      AppLocalizations.of(context)!.iPaidThem,
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _direction = val);
-                        },
-                      ),
-                    ),
+                    // ── Direction Toggle ──
+                    _buildDirectionToggle(),
                     SizedBox(height: 12),
 
                     // ── Transaction Date Card ──
@@ -402,8 +351,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                                   ),
                                   SizedBox(height: 4),
                                   Text(
-                                    DateFormat('MMM dd, yyyy • h:mm a')
-                                        .format(_selectedDate),
+                                    AppFormatters.formatDate(_selectedDate, 'MMM dd, yyyy • h:mm a'),
                                     style: TextStyle(
                                       fontSize: 15,
                                       fontWeight: FontWeight.w600,
@@ -551,7 +499,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                       ),
                       if (hasDue)
                         Text(
-                          DateFormat('MMM dd, yyyy').format(_dueDate!),
+                          AppFormatters.formatDate(_dueDate!, 'MMM dd, yyyy'),
                           style: TextStyle(
                             fontSize: 12,
                             color: Theme.of(context).primaryColor,
@@ -560,7 +508,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                         )
                       else
                         Text(
-                          'Optional — pick a due date',
+                          AppLocalizations.of(context)!.dueDateOptional,
                           style: TextStyle(
                               fontSize: 12, color: AppTheme.textSecondary),
                         ),
@@ -582,7 +530,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        'Clear',
+                        AppLocalizations.of(context)!.clearDueDate,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -600,22 +548,22 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
             padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
             child: Row(
               children: [
-                _buildPresetChip('3d', 0, () {
+                _buildPresetChip(AppLocalizations.of(context)!.preset3d, 0, () {
                   setState(() => _selectedPreset = 0);
                   _applyPreset(3);
                 }),
                 SizedBox(width: 8),
-                _buildPresetChip('7d', 1, () {
+                _buildPresetChip(AppLocalizations.of(context)!.preset7d, 1, () {
                   setState(() => _selectedPreset = 1);
                   _applyPreset(7);
                 }),
                 SizedBox(width: 8),
-                _buildPresetChip('14d', 2, () {
+                _buildPresetChip(AppLocalizations.of(context)!.preset14d, 2, () {
                   setState(() => _selectedPreset = 2);
                   _applyPreset(14);
                 }),
                 SizedBox(width: 8),
-                _buildPresetChip('Custom', 3, () async {
+                _buildPresetChip(AppLocalizations.of(context)!.presetCustom, 3, () async {
                   setState(() => _selectedPreset = 3);
                   await _pickCustomDueDate();
                 }),
@@ -636,7 +584,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      'Enable reminder',
+                      AppLocalizations.of(context)!.enableReminder,
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -671,7 +619,7 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Reminder time',
+                              AppLocalizations.of(context)!.reminderTime,
                               style: TextStyle(
                                 fontSize: 12,
                                 color: AppTheme.textSecondary,
@@ -742,8 +690,8 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
       ),
       child: Row(
         children: [
-          _buildSegment('Debt', DebtPaymentMode.debt),
-          _buildSegment('Payment', DebtPaymentMode.payment),
+          _buildSegment(AppLocalizations.of(context)!.debtLabel, DebtPaymentMode.debt),
+          _buildSegment(AppLocalizations.of(context)!.paymentLabel, DebtPaymentMode.payment),
         ],
       ),
     );
@@ -779,6 +727,63 @@ class _AddDebtPaymentScreenState extends State<AddDebtPaymentScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: isSelected ? Colors.white : AppTheme.textSecondary,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDirectionToggle() {
+    final l = AppLocalizations.of(context)!;
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.lightSurfaceVariant,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: _mode == DebtPaymentMode.debt 
+          ? [
+              _buildDirectionSegment(l.theyOweMe, DebtDirection.theyOweMe),
+              _buildDirectionSegment(l.iOweThem, DebtDirection.iOweThem),
+            ]
+          : [
+              _buildDirectionSegment(l.theyPaidMe, DebtDirection.theyOweMe),
+              _buildDirectionSegment(l.iPaidThem, DebtDirection.iOweThem),
+            ],
+      ),
+    );
+  }
+
+  Widget _buildDirectionSegment(String title, DebtDirection direction) {
+    final isSelected = _direction == direction;
+
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_direction != direction) {
+            setState(() {
+              _direction = direction;
+            });
+          }
+        },
+        child: AnimatedContainer(
+          duration: Duration(milliseconds: 200),
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+          decoration: BoxDecoration(
+            color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+            style: TextStyle(
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: isSelected ? Colors.white : AppTheme.textSecondary,
             ),

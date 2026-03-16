@@ -8,6 +8,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'dart:io';
 import 'package:drift/native.dart';
+import 'package:intl/intl.dart';
 import 'package:wazly/core/theme/app_theme.dart';
 
 // Core & Drift DB
@@ -251,6 +252,8 @@ class WazlyMinimalApp extends StatelessWidget {
       ],
       child: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, settingsState) {
+          // Set global locale for intl date formatting
+          Intl.defaultLocale = settingsState.languageCode;
           return BlocBuilder<ThemeCubit, ThemeState>(
             builder: (context, themeState) {
               return MaterialApp(

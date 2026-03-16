@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:wazly/l10n/app_localizations.dart';
@@ -18,6 +19,7 @@ import 'package:wazly/core/data/local/services/notification_service.dart';
 
 import 'package:share_plus/share_plus.dart';
 import 'package:wazly/core/utils/pdf_generator.dart';
+import 'package:wazly/core/presentation/widgets/coach_mark_overlay.dart';
 
 class MinimalPersonDetailsScreen extends StatefulWidget {
   final String personId;
@@ -32,6 +34,11 @@ class MinimalPersonDetailsScreen extends StatefulWidget {
 class _MinimalPersonDetailsScreenState
     extends State<MinimalPersonDetailsScreen> {
   final Set<String> _pendingDeletions = {};
+  final GlobalKey _addDebtKey = GlobalKey();
+  final GlobalKey _addPaymentKey = GlobalKey();
+  final GlobalKey _shareReportKey = GlobalKey();
+  final GlobalKey _setReminderKey = GlobalKey();
+  bool _coachChecked = false;
 
   Future<void> _launchPhone(String phone) async {
     final cleanPhone = phone.replaceAll(RegExp(r'[^0-9+]'), '');
@@ -125,6 +132,40 @@ class _MinimalPersonDetailsScreenState
             }
 
             if (state is PersonDetailsLoaded) {
+              if (!_coachChecked) {
+                _coachChecked = true;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  final l = AppLocalizations.of(context)!;
+                  maybeShowCoachMarks(
+                    context: context,
+                    tourId: 'person_details',
+                    steps: [
+                      CoachMarkStep(
+                        targetKey: _addDebtKey,
+                        text: l.hintAddDebt,
+                        icon: FluentIcons.money_off_24_regular,
+                      ),
+                      CoachMarkStep(
+                        targetKey: _addPaymentKey,
+                        text: l.hintAddPayment,
+                        icon: FluentIcons.money_24_regular,
+                      ),
+                      CoachMarkStep(
+                        targetKey: _shareReportKey,
+                        text: l.hintShareReport,
+                        icon: FluentIcons.share_24_regular,
+                      ),
+                      CoachMarkStep(
+                        targetKey: _setReminderKey,
+                        text: l.hintSetReminder,
+                        icon: FluentIcons.alert_24_regular,
+                      ),
+                    ],
+                  );
+                });
+              }
+
               final person = state.person;
               final netBalance = state.netBalanceInCents;
               final transactions = state.transactions.where((t) => !_pendingDeletions.contains(t.id)).toList();
@@ -224,7 +265,7 @@ class _MinimalPersonDetailsScreenState
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          '${remainingAbs.toStringAsFixed(2)} LYD',
+                          '${AppFormatters.formatAmount(remainingAbs.toDouble())} ${context.watch<SettingsCubit>().state.currencyCode}',
                           style: TextStyle(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
@@ -271,104 +312,114 @@ class _MinimalPersonDetailsScreenState
 
                   const SizedBox(height: 24),
 
-                  // --- 3. QUICK ACTIONS ---
+                  // --- 3. PRIMARY ACTIONS ---
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildQuickAction(
-                        context,
-                        icon: FluentIcons.money_off_24_regular,
-                        label: AppLocalizations.of(context)!.addDebt,
-                        color: Colors.red,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddDebtPaymentScreen(
-                                person: person,
-                                initialMode: DebtPaymentMode.debt,
+                      Expanded(
+                        child: _PrimaryActionButton(
+                          key: _addDebtKey,
+                          icon: FluentIcons.money_off_24_regular,
+                          label: AppLocalizations.of(context)!.addDebt,
+                          color: AppTheme.debtColor,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddDebtPaymentScreen(
+                                  person: person,
+                                  initialMode: DebtPaymentMode.debt,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                      _buildQuickAction(
-                        context,
-                        icon: FluentIcons.money_24_regular,
-                        label: AppLocalizations.of(context)!.payment,
-                        color: Colors.green,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => AddDebtPaymentScreen(
-                                person: person,
-                                initialMode: DebtPaymentMode.payment,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _PrimaryActionButton(
+                          key: _addPaymentKey,
+                          icon: FluentIcons.money_24_regular,
+                          label: AppLocalizations.of(context)!.payment,
+                          color: AppTheme.incomeColor,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddDebtPaymentScreen(
+                                  person: person,
+                                  initialMode: DebtPaymentMode.payment,
+                                ),
                               ),
-                            ),
-                          );
-                        },
+                            );
+                          },
+                        ),
                       ),
-                      _buildQuickAction(
-                        context,
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // --- 3b. SECONDARY ACTIONS ---
+                  Row(
+                    children: [
+                      _SecondaryAction(
                         icon: FluentIcons.call_24_regular,
                         label: AppLocalizations.of(context)!.call,
-                        color: Colors.blue,
                         isDisabled: person.phoneNumber == null || person.phoneNumber!.isEmpty,
                         onTap: () {
                           if (person.phoneNumber != null && person.phoneNumber!.isNotEmpty) {
                             _launchPhone(person.phoneNumber!);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppLocalizations.of(context)!.noPhoneNumberAvailable, textAlign: TextAlign.center), duration: const Duration(seconds: 2), behavior: SnackBarBehavior.floating),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.noPhoneNumberAvailable), behavior: SnackBarBehavior.floating),
                             );
                           }
                         },
                       ),
-                      _buildQuickAction(
-                        context,
+                      const SizedBox(width: 10),
+                      _SecondaryAction(
+                        key: _shareReportKey,
                         icon: FluentIcons.share_24_regular,
                         label: AppLocalizations.of(context)!.shareReport,
-                        color: Colors.purple,
                         onTap: () async {
                           try {
-                            // Show a quick snackbar while generating
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text(AppLocalizations.of(context)!.generatingReport), duration: const Duration(seconds: 1)),
                             );
-                            final pdfPath = await PdfGenerator.generatePersonReport(context, person, state.transactions, netBalance);
+                            final pdfPath = await PdfGenerator.generatePersonReport(context, person, state.transactions, netBalance, context.read<SettingsCubit>().state.currencyCode);
                             if (!mounted) return;
                             await Share.shareXFiles(
                               [XFile(pdfPath)],
-                              text: 'Wazly Transaction Report for ${person.name}',
+                              text: 'Wazly – ${person.name}',
                             );
                           } catch (e) {
+                            if (!mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(content: Text('${AppLocalizations.of(context)!.failedToGenerateReport}: $e')),
                             );
                           }
                         },
                       ),
-                      _buildQuickAction(
-                        context,
-                        icon: FluentIcons.alert_24_filled,
+                      const SizedBox(width: 10),
+                      _SecondaryAction(
+                        icon: FluentIcons.chat_24_regular,
                         label: AppLocalizations.of(context)!.remind,
-                        color: Colors.orange,
                         isDisabled: person.phoneNumber == null || person.phoneNumber!.isEmpty,
                         onTap: () {
                           if (person.phoneNumber != null && person.phoneNumber!.isNotEmpty) {
-                            String message = 'Hello ${person.name}, ';
+                            final l = AppLocalizations.of(context)!;
+                            String message;
                             if (netBalance > 0) {
-                              message += 'just a friendly reminder about the outstanding balance of ${(netBalance / 100).toStringAsFixed(0)} LYD.';
+                              message = l.whatsappReminderOwes(person.name, AppFormatters.formatAmount(netBalance / 100).split('.').first);
                             } else if (netBalance < 0) {
-                              message += 'I am reaching out regarding my outstanding balance of ${(netBalance.abs() / 100).toStringAsFixed(0)} LYD.';
+                              message = l.whatsappReminderYouOwe(person.name, AppFormatters.formatAmount(netBalance.abs() / 100).split('.').first);
                             } else {
-                              message += 'just saying hi! Our balance is settled.';
+                              message = l.whatsappReminderSettled(person.name);
                             }
                             _launchWhatsApp(person.phoneNumber!, message: message);
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppLocalizations.of(context)!.noPhoneNumberAvailable, textAlign: TextAlign.center), duration: const Duration(seconds: 2), behavior: SnackBarBehavior.floating),
+                              SnackBar(content: Text(AppLocalizations.of(context)!.noPhoneNumberAvailable), behavior: SnackBarBehavior.floating),
                             );
                           }
                         },
@@ -418,6 +469,7 @@ class _MinimalPersonDetailsScreenState
                   ),
                   const SizedBox(height: 12),
                   Container(
+                    key: _setReminderKey,
                     decoration: BoxDecoration(
                       color: AppTheme.surfaceCard,
                       borderRadius: BorderRadius.circular(AppTheme.cardRadius),
@@ -448,7 +500,7 @@ class _MinimalPersonDetailsScreenState
                       ),
                       subtitle: Text(
                         person.nextReminderDate != null
-                            ? AppLocalizations.of(context)!.nextReminder(DateFormat('MMM dd, yyyy').format(person.nextReminderDate!))
+                            ? AppLocalizations.of(context)!.nextReminder(AppFormatters.formatDate(person.nextReminderDate!, 'MMM dd, yyyy'))
                             : AppLocalizations.of(context)!.tapToScheduleReminder,
                         style: TextStyle(
                           color: AppTheme.textSecondary,
@@ -522,11 +574,11 @@ class _MinimalPersonDetailsScreenState
                     ),
                     child: Column(
                       children: [
-                        _buildInsightRow(AppLocalizations.of(context)!.lastTransaction, lastTxDate != null ? DateFormat('MMM d, yyyy').format(lastTxDate) : AppLocalizations.of(context)!.never),
+                        _buildInsightRow(AppLocalizations.of(context)!.lastTransaction, lastTxDate != null ? AppFormatters.formatDate(lastTxDate, 'MMM d, yyyy') : AppLocalizations.of(context)!.never),
                         const Divider(height: 24),
                         _buildInsightRow(AppLocalizations.of(context)!.totalTransactions, '${transactions.length}'),
                         const Divider(height: 24),
-                        _buildInsightRow(AppLocalizations.of(context)!.averagePayment, '${(avgPaymentCents / 100).toStringAsFixed(2)} LYD'),
+                        _buildInsightRow(AppLocalizations.of(context)!.averagePayment, '${AppFormatters.formatAmount(avgPaymentCents / 100)} ${context.watch<SettingsCubit>().state.currencyCode}'),
                       ],
                     ),
                   ),
@@ -671,7 +723,7 @@ class _MinimalPersonDetailsScreenState
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    '$amountSign${(t.signedAmountForPerson() / 100).toStringAsFixed(2)}',
+                                    '$amountSign${AppFormatters.formatAmount(t.signedAmountForPerson() / 100).replaceAll('-', '')}',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
@@ -680,7 +732,7 @@ class _MinimalPersonDetailsScreenState
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    DateFormat('MMM d').format(t.date),
+                                    AppFormatters.formatDate(t.date, 'MMM d'),
                                     style: const TextStyle(
                                       fontSize: 12,
                                       color: AppTheme.textSecondary,
@@ -749,7 +801,7 @@ class _MinimalPersonDetailsScreenState
                               ],
                             ),
                             Text(
-                              '${(plan.totalAmountInCents / 100).toStringAsFixed(2)} LYD',
+                              '${AppFormatters.formatAmount(plan.totalAmountInCents / 100)} ${context.watch<SettingsCubit>().state.currencyCode}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
@@ -794,7 +846,7 @@ class _MinimalPersonDetailsScreenState
           ),
           const SizedBox(height: 8),
           Text(
-            (cents / 100).toStringAsFixed(0),
+            AppFormatters.formatAmount(cents / 100).split('.').first,
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -802,35 +854,6 @@ class _MinimalPersonDetailsScreenState
             ),
             textAlign: TextAlign.center,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickAction(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap, bool isDisabled = false}) {
-    final effectiveIconColor = isDisabled ? AppTheme.textSecondary : color;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDisabled ? AppTheme.borderLight.withAlpha(50) : color.withAlpha(25),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: effectiveIconColor, size: 24),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isDisabled ? AppTheme.textSecondary : AppTheme.textPrimary,
-            ),
-          )
         ],
       ),
     );
@@ -857,6 +880,104 @@ class _MinimalPersonDetailsScreenState
           ),
         ),
       ],
+    );
+  }
+}
+
+class _PrimaryActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _PrimaryActionButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SecondaryAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool isDisabled;
+
+  const _SecondaryAction({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isDisabled = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor =
+        isDisabled ? AppTheme.textSecondary : AppTheme.textPrimary;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceCard,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: AppTheme.borderLight),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: effectiveColor),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: effectiveColor,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

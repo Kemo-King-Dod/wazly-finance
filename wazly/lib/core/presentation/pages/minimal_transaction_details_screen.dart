@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:intl/intl.dart';
+import 'package:wazly/core/presentation/bloc/settings/settings_cubit.dart';
 import 'package:wazly/core/domain/entities/transaction.dart';
 import 'package:wazly/core/domain/entities/transaction_enums.dart';
 import 'package:wazly/core/theme/app_theme.dart';
 
 import 'package:wazly/core/presentation/pages/minimal_edit_transaction_bottom_sheet.dart';
 import 'package:wazly/l10n/app_localizations.dart';
+import 'package:wazly/core/utils/app_formatters.dart';
 
 class MinimalTransactionDetailsScreen extends StatefulWidget {
   final Transaction transaction;
@@ -37,21 +39,35 @@ class _MinimalTransactionDetailsScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(AppLocalizations.of(context)!.deleteTransactionTitle),
-        content: const Text(
-          'This action cannot be undone. It will affect balances immediately.',
+        backgroundColor: AppTheme.surfaceCard,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          AppLocalizations.of(context)!.deleteTransactionTitle,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        content: Text(
+          AppLocalizations.of(context)!.deleteTxWarning,
+          style: const TextStyle(color: AppTheme.textSecondary),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(AppLocalizations.of(context)!.cancel),
+            child: Text(
+              AppLocalizations.of(context)!.cancel,
+              style: const TextStyle(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+            ),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
               Navigator.pop(context, 'delete'); // Return to parent with action
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.debtColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
             child: Text(AppLocalizations.of(context)!.delete),
           ),
         ],
@@ -64,11 +80,12 @@ class _MinimalTransactionDetailsScreenState
     // Determine title
     String title = _transaction.description.isNotEmpty
         ? _transaction.description
-        : 'Transaction';
+        : AppLocalizations.of(context)!.transactionTitle;
+
     if (_transaction.type == TransactionType.treasuryIn) {
-      title = 'Added funds';
+      title = AppLocalizations.of(context)!.addedFundsTitle;
     } else if (_transaction.type == TransactionType.treasuryOut) {
-      title = 'Removed funds';
+      title = AppLocalizations.of(context)!.removedFundsTitle;
     } else if (widget.personName != null) {
       title = widget.personName!;
     }
@@ -105,140 +122,178 @@ class _MinimalTransactionDetailsScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.transactionDetails),
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+      backgroundColor: AppTheme.backgroundColor,
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 16),
-            CircleAvatar(
-              backgroundColor: iconColor.withValues(alpha: 0.1),
-              radius: 40,
-              child: Icon(iconData, color: iconColor, size: 40),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '$prefix${(_transaction.amountInCents / 100).toStringAsFixed(2)} LYD',
-              style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.bold,
-                color: amountColor,
+            // ═══════════ HEADER ═══════════
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppTheme.borderLight),
+                      ),
+                      child: const Icon(FluentIcons.arrow_left_24_regular,
+                          size: 18, color: AppTheme.textSecondary),
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Text(
+                      AppLocalizations.of(context)!.transactionDetails,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.textPrimary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            Card(
-              color: Colors.white,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(color: Colors.grey.shade200),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20.0),
                 child: Column(
                   children: [
-                    if (widget.personName != null) ...[
-                      _DetailRow(label: AppLocalizations.of(context)!.personLabel, value: widget.personName!),
-                      const Divider(),
-                    ],
-                    _DetailRow(
-                      label: AppLocalizations.of(context)!.dateAndTimeLabel,
-                      value: DateFormat(
-                        'MMM dd, yyyy • h:mm a',
-                      ).format(_transaction.date),
+                    const SizedBox(height: 10),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                        border: Border.all(color: AppTheme.borderLight),
+                      ),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              color: iconColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(iconData, color: iconColor, size: 28),
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '$prefix${AppFormatters.formatAmountInCents(_transaction.amountInCents)} ${context.watch<SettingsCubit>().state.currencyCode}',
+                            style: TextStyle(
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                              color: amountColor,
+                              letterSpacing: -1,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const Divider(),
-                    _DetailRow(
-                      label: AppLocalizations.of(context)!.descriptionText,
-                      value: _transaction.description.isEmpty
-                          ? AppLocalizations.of(context)!.notAvailable
-                          : _transaction.description,
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: AppTheme.surfaceCard,
+                        borderRadius: BorderRadius.circular(AppTheme.cardRadius),
+                        border: Border.all(color: AppTheme.borderLight),
+                      ),
+                      child: Column(
+                        children: [
+                          if (widget.personName != null)
+                            _DetailRow(
+                              label: AppLocalizations.of(context)!.personLabel,
+                              value: widget.personName!,
+                              icon: FluentIcons.person_24_regular,
+                            ),
+                          _DetailRow(
+                            label: AppLocalizations.of(context)!.dateAndTimeLabel,
+                            value: AppFormatters.formatDate(_transaction.date, 'MMM dd, yyyy • h:mm a'),
+                            icon: FluentIcons.calendar_24_regular,
+                          ),
+                          _DetailRow(
+                            label: AppLocalizations.of(context)!.typeLabel,
+                            value: _transaction.type.name.toUpperCase(),
+                            icon: FluentIcons.tag_24_regular,
+                          ),
+                          _DetailRow(
+                            label: AppLocalizations.of(context)!.transactionId,
+                            value: '#${_transaction.id.substring(0, 8)}',
+                            icon: FluentIcons.fingerprint_24_regular,
+                          ),
+                          _DetailRow(
+                            label: AppLocalizations.of(context)!.descriptionText,
+                            value: _transaction.description.isEmpty
+                                ? AppLocalizations.of(context)!.notAvailable
+                                : _transaction.description,
+                            icon: FluentIcons.note_24_regular,
+                            isLast: true,
+                          ),
+                        ],
+                      ),
                     ),
-                    const Divider(),
-                    _DetailRow(label: AppLocalizations.of(context)!.transactionId, value: _transaction.id),
-                    const Divider(),
-                    _DetailRow(
-                      label: AppLocalizations.of(context)!.typeLabel,
-                      value: _transaction.type.name.toUpperCase(),
-                    ),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 32),
-            // Actions
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      final updatedTx = await showModalBottomSheet<Transaction>(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        builder: (context) => Container(
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(24),
-                            ),
-                          ),
-                          child: MinimalEditTransactionBottomSheet(
+
+            // ═══════════ ACTIONS ═══════════
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      onTap: () async {
+                        final updatedTx = await showModalBottomSheet<Transaction>(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: Colors.transparent,
+                          builder: (context) => MinimalEditTransactionBottomSheet(
                             transaction: _transaction,
                           ),
-                        ),
-                      );
-
-                      if (updatedTx != null) {
-                        setState(() {
-                          _transaction = updatedTx;
-                        });
-                      }
-                    },
-                    icon: const Icon(FluentIcons.edit_24_regular),
-                    label: Text(AppLocalizations.of(context)!.edit),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                        );
+                        if (updatedTx != null) {
+                          setState(() => _transaction = updatedTx);
+                        }
+                      },
+                      label: AppLocalizations.of(context)!.edit,
+                      icon: FluentIcons.edit_24_regular,
+                      color: Theme.of(context).primaryColor,
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showDeleteConfirmation(context),
-                    icon: const Icon(FluentIcons.delete_24_regular, color: Colors.red),
-                    label: Text(
-                      AppLocalizations.of(context)!.delete,
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.red.shade200),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ActionButton(
+                      onTap: () => _showDeleteConfirmation(context),
+                      label: AppLocalizations.of(context)!.delete,
+                      icon: FluentIcons.delete_24_regular,
+                      color: AppTheme.debtColor,
+                      isOutlined: true,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -250,37 +305,112 @@ class _MinimalTransactionDetailsScreenState
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
+  final IconData icon;
+  final bool isLast;
 
-  const _DetailRow({required this.label, required this.value});
+  const _DetailRow({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.isLast = false,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppTheme.textSecondary,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppTheme.textPrimary,
-                fontWeight: FontWeight.w500,
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppTheme.lightSurfaceVariant,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, size: 16, color: AppTheme.textSecondary),
               ),
-              textAlign: TextAlign.right,
-            ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppTheme.textSecondary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Divider(height: 1, color: AppTheme.borderLight),
+          ),
+      ],
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final VoidCallback onTap;
+  final String label;
+  final IconData icon;
+  final Color color;
+  final bool isOutlined;
+
+  const _ActionButton({
+    required this.onTap,
+    required this.label,
+    required this.icon,
+    required this.color,
+    this.isOutlined = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 52,
+        decoration: BoxDecoration(
+          color: isOutlined ? Colors.transparent : color,
+          borderRadius: BorderRadius.circular(14),
+          border: isOutlined ? Border.all(color: color.withValues(alpha: 0.3)) : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 18, color: isOutlined ? color : Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isOutlined ? color : Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

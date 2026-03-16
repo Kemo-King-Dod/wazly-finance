@@ -104,6 +104,12 @@ abstract class AppLocalizations {
   /// **'Wazly'**
   String get appTitle;
 
+  /// No description provided for @statusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get statusLabel;
+
   /// No description provided for @dashboard.
   ///
   /// In en, this message translates to:
@@ -2399,7 +2405,7 @@ abstract class AppLocalizations {
   /// No description provided for @tapToAddCategory.
   ///
   /// In en, this message translates to:
-  /// **'Tap + to add your first category'**
+  /// **'Tap + to create one'**
   String get tapToAddCategory;
 
   /// No description provided for @systemBadge.
@@ -2545,6 +2551,456 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reminders'**
   String get remindersSection;
+
+  /// No description provided for @noBackupYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No backup created yet'**
+  String get noBackupYet;
+
+  /// No description provided for @exportDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Save your data as an encrypted backup file'**
+  String get exportDataSubtitle;
+
+  /// No description provided for @importBackupSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore data from a previous backup file'**
+  String get importBackupSubtitle;
+
+  /// No description provided for @resetAllDataSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently delete all data from the app'**
+  String get resetAllDataSubtitle;
+
+  /// No description provided for @customDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom date'**
+  String get customDate;
+
+  /// No description provided for @customTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom time'**
+  String get customTime;
+
+  /// No description provided for @selectDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Select date'**
+  String get selectDate;
+
+  /// No description provided for @selectTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Select time'**
+  String get selectTime;
+
+  /// No description provided for @whatsappReminderOwes.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {name}, just a friendly reminder about the outstanding balance of {amount} LYD.'**
+  String whatsappReminderOwes(String name, String amount);
+
+  /// No description provided for @whatsappReminderYouOwe.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {name}, I am reaching out regarding my outstanding balance of {amount} LYD.'**
+  String whatsappReminderYouOwe(String name, String amount);
+
+  /// No description provided for @whatsappReminderSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello {name}, just saying hi! Our balance is settled.'**
+  String whatsappReminderSettled(String name);
+
+  /// No description provided for @todayFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayFilter;
+
+  /// No description provided for @thisWeekFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'This Week'**
+  String get thisWeekFilter;
+
+  /// No description provided for @thisMonthFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'This Month'**
+  String get thisMonthFilter;
+
+  /// No description provided for @thisYearFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'This Year'**
+  String get thisYearFilter;
+
+  /// No description provided for @customRangeFilter.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get customRangeFilter;
+
+  /// No description provided for @trendChart.
+  ///
+  /// In en, this message translates to:
+  /// **'Trend'**
+  String get trendChart;
+
+  /// No description provided for @fromDate.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get fromDate;
+
+  /// No description provided for @toDate.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get toDate;
+
+  /// No description provided for @rangeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} – {to}'**
+  String rangeLabel(String from, String to);
+
+  /// No description provided for @newTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'New Transaction'**
+  String get newTransaction;
+
+  /// No description provided for @recordIncomeExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Record income or expense'**
+  String get recordIncomeExpense;
+
+  /// No description provided for @saveTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Transaction'**
+  String get saveTransaction;
+
+  /// No description provided for @addNewCategoryOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Category'**
+  String get addNewCategoryOption;
+
+  /// No description provided for @gotIt.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get gotIt;
+
+  /// No description provided for @hintAddTransaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap here to record a new income or expense transaction'**
+  String get hintAddTransaction;
+
+  /// No description provided for @hintAddPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a new person to track debts and payments with them'**
+  String get hintAddPerson;
+
+  /// No description provided for @hintAddDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a new debt for this person'**
+  String get hintAddDebt;
+
+  /// No description provided for @hintAddPayment.
+  ///
+  /// In en, this message translates to:
+  /// **'Record a payment from or to this person'**
+  String get hintAddPayment;
+
+  /// No description provided for @hintShareReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Share a detailed transactions report as PDF'**
+  String get hintShareReport;
+
+  /// No description provided for @hintSetReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Set a reminder to follow up on this debt'**
+  String get hintSetReminder;
+
+  /// No description provided for @resetGuidedHints.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset Guided Hints'**
+  String get resetGuidedHints;
+
+  /// No description provided for @resetGuidedHintsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in-app guided hints again on next visit'**
+  String get resetGuidedHintsSubtitle;
+
+  /// No description provided for @hintsResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Guided hints have been reset'**
+  String get hintsResetDone;
+
+  /// No description provided for @filterOwesMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Owes Me'**
+  String get filterOwesMe;
+
+  /// No description provided for @sortHighestBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Highest Balance'**
+  String get sortHighestBalance;
+
+  /// No description provided for @sortRecentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get sortRecentActivity;
+
+  /// No description provided for @sortAlphabetical.
+  ///
+  /// In en, this message translates to:
+  /// **'Alphabetical'**
+  String get sortAlphabetical;
+
+  /// No description provided for @miuiStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings → Apps → Wazly → Battery saver\nSelect: No restrictions'**
+  String get miuiStep1;
+
+  /// No description provided for @miuiStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings → Battery & performance → Autostart\nEnable autostart for Wazly'**
+  String get miuiStep2;
+
+  /// No description provided for @miuiStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings → Apps → Wazly → Notifications\nEnsure all notification types are enabled'**
+  String get miuiStep3;
+
+  /// No description provided for @miuiStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings → Apps → Wazly → Permissions\nEnable: Alarms or other clock-related permissions'**
+  String get miuiStep4;
+
+  /// No description provided for @langEnglish.
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get langEnglish;
+
+  /// No description provided for @langArabic.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic'**
+  String get langArabic;
+
+  /// No description provided for @currencySymbol.
+  ///
+  /// In en, this message translates to:
+  /// **'LYD'**
+  String get currencySymbol;
+
+  /// No description provided for @preset3d.
+  ///
+  /// In en, this message translates to:
+  /// **'3d'**
+  String get preset3d;
+
+  /// No description provided for @preset7d.
+  ///
+  /// In en, this message translates to:
+  /// **'7d'**
+  String get preset7d;
+
+  /// No description provided for @preset14d.
+  ///
+  /// In en, this message translates to:
+  /// **'14d'**
+  String get preset14d;
+
+  /// No description provided for @presetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get presetCustom;
+
+  /// No description provided for @deleteTxWarning.
+  ///
+  /// In en, this message translates to:
+  /// **'This action cannot be undone. It will affect balances immediately.'**
+  String get deleteTxWarning;
+
+  /// No description provided for @transactionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transaction'**
+  String get transactionTitle;
+
+  /// No description provided for @addedFundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Added funds'**
+  String get addedFundsTitle;
+
+  /// No description provided for @removedFundsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removed funds'**
+  String get removedFundsTitle;
+
+  /// No description provided for @exportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as PDF'**
+  String get exportPdf;
+
+  /// No description provided for @exportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export as Excel'**
+  String get exportExcel;
+
+  /// No description provided for @exportDialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Export Activity'**
+  String get exportDialogTitle;
+
+  /// No description provided for @exportDialogDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'The current filtered activity will be exported as {format} as requested.'**
+  String exportDialogDescription(String format);
+
+  /// No description provided for @hintExportPdf.
+  ///
+  /// In en, this message translates to:
+  /// **'Export currently filtered activity as a PDF file'**
+  String get hintExportPdf;
+
+  /// No description provided for @hintExportExcel.
+  ///
+  /// In en, this message translates to:
+  /// **'Export currently filtered activity as an Excel file'**
+  String get hintExportExcel;
+
+  /// No description provided for @continueExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueExport;
+
+  /// No description provided for @notificationTestMaturity.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification Test (Developer)'**
+  String get notificationTestMaturity;
+
+  /// No description provided for @testScheduleResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Test Schedule Result'**
+  String get testScheduleResult;
+
+  /// No description provided for @ok.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get ok;
+
+  /// No description provided for @mondayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Mo'**
+  String get mondayAbbr;
+
+  /// No description provided for @tuesdayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Tu'**
+  String get tuesdayAbbr;
+
+  /// No description provided for @wednesdayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'We'**
+  String get wednesdayAbbr;
+
+  /// No description provided for @thursdayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Th'**
+  String get thursdayAbbr;
+
+  /// No description provided for @fridayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Fr'**
+  String get fridayAbbr;
+
+  /// No description provided for @saturdayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Sa'**
+  String get saturdayAbbr;
+
+  /// No description provided for @sundayAbbr.
+  ///
+  /// In en, this message translates to:
+  /// **'Su'**
+  String get sundayAbbr;
+
+  /// No description provided for @arabicLanguageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Arabic (العربية)'**
+  String get arabicLanguageLabel;
+
+  /// No description provided for @enableExactReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable Exact Reminders'**
+  String get enableExactReminders;
+
+  /// No description provided for @exactRemindersExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'To get reminders exactly on time, open device settings and enable \"Alarms & reminders\" for the Wazly app.\n\nYou can save the reminder now, but it may arrive slightly late.'**
+  String get exactRemindersExplanation;
+
+  /// No description provided for @later.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get later;
+
+  /// No description provided for @openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get openSettings;
 }
 
 class _AppLocalizationsDelegate

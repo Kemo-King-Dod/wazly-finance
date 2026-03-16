@@ -21,19 +21,28 @@ class LocaleSetupScreen extends StatefulWidget {
 }
 
 class _LocaleSetupScreenState extends State<LocaleSetupScreen> {
-  String _selectedLanguage = 'en';
+  late String _selectedLanguage;
   String? _selectedCountry;
   String _detectedCurrency = 'USD';
 
-  final List<SelectorItem> _languageItems = const [
-    SelectorItem(label: 'English', value: 'en', leadingIcon: '🇺🇸'),
-    SelectorItem(label: 'العربية (Arabic)', value: 'ar', leadingIcon: '🇸🇦'),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _selectedLanguage = context.read<SettingsCubit>().state.languageCode;
+  }
+
+  List<SelectorItem> _getLanguageItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      SelectorItem(label: l10n.langEnglish, value: 'en', leadingIcon: '🇺🇸'),
+      SelectorItem(label: l10n.arabicLanguageLabel, value: 'ar', leadingIcon: '🇸🇦'),
+    ];
+  }
 
   List<SelectorItem> _getCountryItems(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return [
-      SelectorItem(label: l10n.countryLibya, value: 'LY', leadingIcon: '🇱🇾', badgeText: 'LYD'),
+      SelectorItem(label: l10n.countryLibya, value: 'LY', leadingIcon: '🇱🇾', badgeText: l10n.currencySymbol),
       SelectorItem(label: l10n.countryEgypt, value: 'EG', leadingIcon: '🇪🇬', badgeText: 'EGP'),
       SelectorItem(label: l10n.countryUAE, value: 'AE', leadingIcon: '🇦🇪', badgeText: 'AED'),
       SelectorItem(label: l10n.countrySaudiArabia, value: 'SA', leadingIcon: '🇸🇦', badgeText: 'SAR'),
@@ -145,9 +154,12 @@ class _LocaleSetupScreenState extends State<LocaleSetupScreen> {
                     context: context,
                     title: l10n?.selectLanguageHint ?? 'Select your language',
                     type: SelectorType.language,
-                    items: _languageItems,
+                    items: _getLanguageItems(context),
                     selectedValue: _selectedLanguage,
-                    onSelected: (val) => setState(() => _selectedLanguage = val),
+                    onSelected: (val) {
+                      setState(() => _selectedLanguage = val);
+                      context.read<SettingsCubit>().updateLanguage(val);
+                    },
                   );
                 },
                 borderRadius: BorderRadius.circular(16),
@@ -161,13 +173,13 @@ class _LocaleSetupScreenState extends State<LocaleSetupScreen> {
                   child: Row(
                     children: [
                       Text(
-                        _languageItems.firstWhere((l) => l.value == _selectedLanguage).leadingIcon ?? '🌐',
+                        _getLanguageItems(context).firstWhere((l) => l.value == _selectedLanguage).leadingIcon ?? '🌐',
                         style: const TextStyle(fontSize: 24),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          _languageItems.firstWhere((l) => l.value == _selectedLanguage).label,
+                          _getLanguageItems(context).firstWhere((l) => l.value == _selectedLanguage).label,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

@@ -12,6 +12,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appTitle => 'Wazly';
 
   @override
+  String get statusLabel => 'Status';
+
+  @override
   String get dashboard => 'Dashboard';
 
   @override
@@ -1197,7 +1200,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noCategoriesYet => 'No categories yet';
 
   @override
-  String get tapToAddCategory => 'Tap + to add your first category';
+  String get tapToAddCategory => 'Tap + to create one';
 
   @override
   String get systemBadge => 'System';
@@ -1275,4 +1278,250 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindersSection => 'Reminders';
+
+  @override
+  String get noBackupYet => 'No backup created yet';
+
+  @override
+  String get exportDataSubtitle => 'Save your data as an encrypted backup file';
+
+  @override
+  String get importBackupSubtitle => 'Restore data from a previous backup file';
+
+  @override
+  String get resetAllDataSubtitle => 'Permanently delete all data from the app';
+
+  @override
+  String get customDate => 'Custom date';
+
+  @override
+  String get customTime => 'Custom time';
+
+  @override
+  String get selectDate => 'Select date';
+
+  @override
+  String get selectTime => 'Select time';
+
+  @override
+  String whatsappReminderOwes(String name, String amount) {
+    return 'Hello $name, just a friendly reminder about the outstanding balance of $amount LYD.';
+  }
+
+  @override
+  String whatsappReminderYouOwe(String name, String amount) {
+    return 'Hello $name, I am reaching out regarding my outstanding balance of $amount LYD.';
+  }
+
+  @override
+  String whatsappReminderSettled(String name) {
+    return 'Hello $name, just saying hi! Our balance is settled.';
+  }
+
+  @override
+  String get todayFilter => 'Today';
+
+  @override
+  String get thisWeekFilter => 'This Week';
+
+  @override
+  String get thisMonthFilter => 'This Month';
+
+  @override
+  String get thisYearFilter => 'This Year';
+
+  @override
+  String get customRangeFilter => 'Custom';
+
+  @override
+  String get trendChart => 'Trend';
+
+  @override
+  String get fromDate => 'From';
+
+  @override
+  String get toDate => 'To';
+
+  @override
+  String rangeLabel(String from, String to) {
+    return '$from – $to';
+  }
+
+  @override
+  String get newTransaction => 'New Transaction';
+
+  @override
+  String get recordIncomeExpense => 'Record income or expense';
+
+  @override
+  String get saveTransaction => 'Save Transaction';
+
+  @override
+  String get addNewCategoryOption => 'Add New Category';
+
+  @override
+  String get gotIt => 'Got it';
+
+  @override
+  String get hintAddTransaction =>
+      'Tap here to record a new income or expense transaction';
+
+  @override
+  String get hintAddPerson =>
+      'Add a new person to track debts and payments with them';
+
+  @override
+  String get hintAddDebt => 'Record a new debt for this person';
+
+  @override
+  String get hintAddPayment => 'Record a payment from or to this person';
+
+  @override
+  String get hintShareReport => 'Share a detailed transactions report as PDF';
+
+  @override
+  String get hintSetReminder => 'Set a reminder to follow up on this debt';
+
+  @override
+  String get resetGuidedHints => 'Reset Guided Hints';
+
+  @override
+  String get resetGuidedHintsSubtitle =>
+      'Show in-app guided hints again on next visit';
+
+  @override
+  String get hintsResetDone => 'Guided hints have been reset';
+
+  @override
+  String get filterOwesMe => 'Owes Me';
+
+  @override
+  String get sortHighestBalance => 'Highest Balance';
+
+  @override
+  String get sortRecentActivity => 'Recent Activity';
+
+  @override
+  String get sortAlphabetical => 'Alphabetical';
+
+  @override
+  String get miuiStep1 =>
+      'Settings → Apps → Wazly → Battery saver\nSelect: No restrictions';
+
+  @override
+  String get miuiStep2 =>
+      'Settings → Battery & performance → Autostart\nEnable autostart for Wazly';
+
+  @override
+  String get miuiStep3 =>
+      'Settings → Apps → Wazly → Notifications\nEnsure all notification types are enabled';
+
+  @override
+  String get miuiStep4 =>
+      'Settings → Apps → Wazly → Permissions\nEnable: Alarms or other clock-related permissions';
+
+  @override
+  String get langEnglish => 'English';
+
+  @override
+  String get langArabic => 'Arabic';
+
+  @override
+  String get currencySymbol => 'LYD';
+
+  @override
+  String get preset3d => '3d';
+
+  @override
+  String get preset7d => '7d';
+
+  @override
+  String get preset14d => '14d';
+
+  @override
+  String get presetCustom => 'Custom';
+
+  @override
+  String get deleteTxWarning =>
+      'This action cannot be undone. It will affect balances immediately.';
+
+  @override
+  String get transactionTitle => 'Transaction';
+
+  @override
+  String get addedFundsTitle => 'Added funds';
+
+  @override
+  String get removedFundsTitle => 'Removed funds';
+
+  @override
+  String get exportPdf => 'Export as PDF';
+
+  @override
+  String get exportExcel => 'Export as Excel';
+
+  @override
+  String get exportDialogTitle => 'Export Activity';
+
+  @override
+  String exportDialogDescription(String format) {
+    return 'The current filtered activity will be exported as $format as requested.';
+  }
+
+  @override
+  String get hintExportPdf =>
+      'Export currently filtered activity as a PDF file';
+
+  @override
+  String get hintExportExcel =>
+      'Export currently filtered activity as an Excel file';
+
+  @override
+  String get continueExport => 'Continue';
+
+  @override
+  String get notificationTestMaturity => 'Notification Test (Developer)';
+
+  @override
+  String get testScheduleResult => 'Test Schedule Result';
+
+  @override
+  String get ok => 'OK';
+
+  @override
+  String get mondayAbbr => 'Mo';
+
+  @override
+  String get tuesdayAbbr => 'Tu';
+
+  @override
+  String get wednesdayAbbr => 'We';
+
+  @override
+  String get thursdayAbbr => 'Th';
+
+  @override
+  String get fridayAbbr => 'Fr';
+
+  @override
+  String get saturdayAbbr => 'Sa';
+
+  @override
+  String get sundayAbbr => 'Su';
+
+  @override
+  String get arabicLanguageLabel => 'Arabic (العربية)';
+
+  @override
+  String get enableExactReminders => 'Enable Exact Reminders';
+
+  @override
+  String get exactRemindersExplanation =>
+      'To get reminders exactly on time, open device settings and enable \"Alarms & reminders\" for the Wazly app.\n\nYou can save the reminder now, but it may arrive slightly late.';
+
+  @override
+  String get later => 'Later';
+
+  @override
+  String get openSettings => 'Open Settings';
 }
